@@ -87,9 +87,11 @@ And then use the same name as you put in the has_attached_file field for the fie
 
 <h1>Edit Profile Image</h1>
 
-<div>
-  <label>Profile Image:</label>
-  <input type="file" name="profile_image" id="profile_image">
+<div  class="form-group">
+  <div>  
+    <label>Profile Image:</label>
+    <input type="file" name="profile_image" id="profile_image">
+  </div>
 </div>
 
 <div  class="form-group">

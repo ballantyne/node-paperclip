@@ -1,7 +1,7 @@
 node-paperclip
 =========
 
-This is a npm module that is meant to work like the Paperclip gem from Ruby on Rails. It currently only works with mongoose,but is set up to be easily extended to work with other databases.  Also, it works with AWS s3 and the file system at the present time, but it should be easy to add other storage methods in the future. 
+This is a npm module that is meant to work like the Paperclip gem from Ruby on Rails. It currently only works with mongoose, but is set up to be easily extended to work with other databases.  Also, it works with AWS s3 and the file system at the present time, but it should be easy to add other storage methods in the future. 
 
 To install 
 

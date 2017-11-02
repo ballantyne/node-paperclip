@@ -39,6 +39,47 @@ ProfileImage.plugin(Paperclip.plugins.mongoose, {files: [
 module.exports     = mongoose.model('ProfileImage', ProfileImage);
 ```
 
+Here is an example of an express route that uses that ProfileImage model.
+```javascript
+
+var express = require('express');
+var router = express.Router();
+var ProfileImage = require('profile_image');
+var middleware = require('node-paperclip').middleware
+
+router.post('/post_profile_image', 
+
+  middleware.parser().single('profile_image'), 
+  middleware.transpose, 
+
+  function(req, res, next) {
+    req.body.user_id  = req.user._id;
+    req.body.username = req.user.username;
+    next();
+  },  
+
+  function(req, res, next) {
+    ProfileImage.findOne({username: req.user.username}, function(err, profile_image) {
+      if (profile_image) {  
+        profile_image.remove(function(err) {
+          next();
+        });
+      } else {
+        next();
+      }
+    });
+  }, 
+
+  function (req, res) {  
+    
+    ProfileImage.create(req.body, function(err, doc) {
+      res.redirect('/#profile/images');
+    });
+})
+
+module.exports = router;
+```
+
 It uses s3 by default, but can use a file system if you want.  The example above is configured to use the file system.  Is you plan to use s3 you will need the following two files in the config directory.  The plugin uses the config npm module, and so if you already use that module then you can just add the bucket reference to the files you normally would.
 
 config/aws.json

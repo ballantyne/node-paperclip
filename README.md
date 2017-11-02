@@ -80,7 +80,7 @@ router.post('/post_profile_image',
 module.exports = router;
 ```
 
-It uses s3 by default, but can use a file system if you want.  The example above is configured to use the file system.  Is you plan to use s3 you will need the following two files in the config directory.  The plugin uses the config npm module, and so if you already use that module then you can just add the bucket reference to the files you normally would.
+It uses s3 by default, but can use a file system if you want.  The example above is configured to use the file system.  If you plan to use s3 you will need the following two files in the config directory.  The plugin uses the config npm module, and so if you already use that module then you can just add the bucket reference to the files you normally would.
 
 config/aws.json
 ```javascript

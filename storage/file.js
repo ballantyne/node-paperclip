@@ -1,5 +1,3 @@
-// I haven't really test that this works, but I expect that it does.
-
 const config = require('config');
 const fs     = require('fs');
 const mkdirp = require('mkdirp');

@@ -80,6 +80,30 @@ router.post('/post_profile_image',
 module.exports = router;
 ```
 
+And then use the same name as you put in the has_attached_file field for the fieldname and it the middleware should correctly prepare the data to be saved and place the file in the correct place in your storage.
+
+```html
+<form  class="form-horizontal" enctype="multipart/form-data" action="/post_profile_image" method="post">
+
+<h1>Edit Profile Image</h1>
+
+<div>
+  <label>Profile Image:</label>
+  <input type="file" name="profile_image" id="profile_image">
+</div>
+
+<div  class="form-group">
+  <div class="col-sm-offset-2 col-sm-10">
+    <input class='btn btn-default' type="submit" value="Save"/>
+  </div>
+</div>
+
+</form>
+
+```
+
+
+
 It uses s3 by default, but can use a file system if you want.  The example above is configured to use the file system.  If you plan to use s3 you will need the following two files in the config directory.  The plugin uses the config npm module, and so if you already use that module then you can just add the bucket reference to the files you normally would.
 
 config/aws.json

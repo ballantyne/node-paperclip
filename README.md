@@ -49,8 +49,7 @@ var middleware = require('node-paperclip').middleware
 
 router.post('/post_profile_image', 
 
-  middleware.parser().single('profile_image'), 
-  middleware.transpose, 
+  middleware.parse(), 
 
   function(req, res, next) {
     req.body.user_id  = req.user._id;

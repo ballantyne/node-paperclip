@@ -28,6 +28,45 @@ var ensureDir = function(key, next) {
   });
 }
 
+module.exports.stream = function(options) {
+  var StreamingWrite = klass(function(options) {
+    this.options = options;
+    if (this.options.key) {
+      this.key = this.options.key;
+    } else {
+      this.generateKey();
+    }
+  
+    this.stream = fs.createWriteStream(this.key);
+  }).methods({
+    generateKey: function() {
+      var extension = this.options.filename.split('.').pop();
+      const hash = crypto.createHmac('sha256', this.options.fieldname)
+        .update(this.options.filename)
+        .digest('hex');
+
+      this.key = '/tmp/' + hash + "." + extension;
+    },   
+ 
+    push: function(buffer) {
+      this.stream.write(buffer)
+    },
+
+   
+
+
+    send: function(next) {
+      this.stream.end();
+      if (next) {
+        next();
+      }
+    }
+  })
+  return new StreamingWrite(options);
+
+}
+
+
 module.exports.put = function(key, body, next) {
   ensureDir(key, function(err) {
     fs.writeFile(fullPath(key), body, function(err, data){
@@ -63,5 +102,13 @@ module.exports.delete = function(key, next) {
       }
     })
   });
+}
+
+module.exports.move = function(oldkey, key, next) {
+  ensureDir(key, function(err) {
+    fs.rename('/'+oldkey, key, function(err) {
+      next(err)
+    })
+  })
 }
 

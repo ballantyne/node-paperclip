@@ -75,16 +75,18 @@ module.exports           = klass(function(options) {
   }
 
   if (options.storage) {
-    this.storage = storage[options.storage];
+    this.storage    = options.storage;
+    this.fileSystem = storage[options.storage];
   } else {
-    this.storage = storage.s3;
+    this.storage    = 's3';
+    this.fileSystem = storage.s3;
   }
 
 }).methods({
 
   toSave: function(save) {
     save.updated_at    = new Date();
-
+    delete save.temporary_key;
     delete save.buffer;
     delete save.path;
     delete save.extension;
@@ -120,6 +122,7 @@ module.exports           = klass(function(options) {
 
   contentTypeToExt: function() {
     declare('contentTypeToExt');
+    console.log(this.document);
     switch(this.document[this.has_attached_file].content_type) {
       case 'image/jpeg':
         return 'jpg';
@@ -225,7 +228,7 @@ module.exports           = klass(function(options) {
   // s3 to reprocess them if the sizes change, but I haven't rewritten that code yet.
   download: function(key, path, next) {
     declare('download', {key: key, path: path});
-    this.storage.get(key, function(err, data) {
+    this.fileSystem.get(key, function(err, data) {
       fs.writeFile(path, data, function(err) {
         if (err) {
           console.log(err);
@@ -237,7 +240,7 @@ module.exports           = klass(function(options) {
 
   upload: function(key, data, next) {
     declare('upload', key);
-    this.storage.put(key, data, function(err, data) {
+    this.fileSystem.put(key, data, function(err, data) {
       if (err) {
         console.log(err);
       }
@@ -335,8 +338,11 @@ module.exports           = klass(function(options) {
     var key     = this.render({style: name});
     
     if (name == 'original') {
+      console.log('original', self.file);
       self.upload(key, self.file.buffer, function(err, result) {
-	next(null, options);
+      // self.fileSystem.move(self.file.temporary_key, key, function(err, result) {
+	console.log(result);
+        next(null, options);
       });
     } else {
       self.transform(options, function(err, buffer) {
@@ -353,7 +359,7 @@ module.exports           = klass(function(options) {
     var name    = _.first(_.keys(style));
     var key     = this.render({style: name, extension: this.contentTypeToExt() });
 
-    this.storage.delete(key, function(err, result) {
+    this.fileSystem.delete(key, function(err, result) {
       next(result);
     });
   }

@@ -9,6 +9,12 @@ const express            = require('express');
 const router             = express.Router();
 const fs                 = require('fs');
 const multer             = require('multer')
+const Busboy             = require('busboy');
+const crypto             = require('crypto');
+
+var _ = require('underscore');
+var storage = require('./storage');
+
 
 module.exports.assets    = function(options) {
   
@@ -27,11 +33,79 @@ module.exports.assets    = function(options) {
 
 }
 
+module.exports.parse          = function(options) {
+  if (options == undefined) options = {};
+
+  if (options.storage) {
+    var fileSystem = storage[options.storage];
+  } else {
+    var fileSystem = storage.s3;
+  }
+
+  var files = {};
+
+  return function(req, res, next) {
+    var busboy = new Busboy({ headers: req.headers });
+
+    busboy.on('file', function(fieldname, file, filename, encoding, mimetype) {
+      
+      files[fieldname] = {
+        content_type: mimetype,
+        original_name: filename,
+        file_size: 0,
+        extension: filename.split('.').pop(),
+        buffer: []
+      };
+ 
+      file.on('data', function(data) {
+        var buffer = new Buffer(data);
+        files[fieldname].file_size += data.length;
+        files[fieldname].buffer.push(buffer);
+        // stream.push(buffer);
+      });
+
+    
+      file.on('end', function() {
+        files[fieldname].buffer = Buffer.concat(files[fieldname].buffer);
+        var stream = new fileSystem.stream({fieldname: fieldname, filename: filename}); 
+        stream.push(files[fieldname].buffer);
+        files[fieldname].stream = stream;
+      });
+    });
+    
+    busboy.on('finish', function() {
+      
+      var keys = _.keys(files);
+      if (keys.length > 0) {
+        for (i = 0; i < keys.length; i++) { 
+          var key = keys[i];
+          if (req.body[key] == undefined) {
+            req.body[key]= {};
+          }
+
+          req.body[key] = files[key];
+          req.body[key].temporary_key = files[key].stream.key;
+          req.body[key].stream.send(function() {
+            delete req.body[key].stream
+            if (_.last(keys) == key) {
+              next();
+            }
+          });
+        }
+      } else {
+        next();
+      }
+
+    });
+
+    req.pipe(busboy);
+  }
+}
+
+
 module.exports.parser    = function(options) { 
-  
   if (options == undefined) options = {};
   return multer(options);
-
 }
 
 module.exports.transpose = function(req, res, next) {
@@ -67,7 +141,7 @@ module.exports.transpose = function(req, res, next) {
     delete file.mimetype;
     delete file.fieldname;
     
-    req.body[name] = file;
+    _.extend(req.body[name], file);
   }
 
   next();

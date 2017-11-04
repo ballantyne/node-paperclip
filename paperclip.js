@@ -30,6 +30,7 @@ const pluralize     = require('pluralize');
 const sharp         = require('sharp');
 
 const storage       = require('./storage');
+const processors    = require('./processors');
 const Geometry      = require('./geometry');
 
 var declare = function(method, args) {
@@ -317,39 +318,12 @@ module.exports           = klass(function(options) {
     declare('transform', options);
     var self         = this;
     
-    var geometry     = new Geometry({width: self.data.width, height: self.data.height})
-    var strategy     = geometry.strategy(options);
-    var image        = sharp((self.file.buffer ? self.file.buffer : self.file.path));
-
-    switch(strategy.resize.modifier) {
-      case '!':
-        image = image.resize(strategy.resize.width, strategy.resize.height).ignoreAspectRatio();        
-        break;
-      case '#':
-	image = image.resize(strategy.resize.width, strategy.resize.height).crop(sharp.strategy.attention);
-        break;
-      case '>':
-        image = image.resize(strategy.resize.width, strategy.resize.height).max();
-        break;
-      case '<':
-        image = image.resize(strategy.resize.width, strategy.resize.height).min();
-        break;
-      default:
- 	image = image.resize(strategy.resize.width, strategy.resize.height);
-    }
-
-    if (strategy.extract) {
-      image   = image.extract(strategy.extract);
-    }
-    
-    image.toBuffer(function(err, outputBuffer) {
-      if (err) {
-	throw err;
-      }
+    var processor = new processors.resize(this);
+    processor.process(options, function(err, buffer) {
       if (next) {
-        next(err, outputBuffer);
-      }
-    });
+        next(err, buffer);
+      }   
+    })
   },
 
   processAndUpload: function(style, next) {

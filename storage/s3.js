@@ -1,14 +1,19 @@
 const config = require('config');
 const AWS    = require('aws-sdk');
 
-AWS.config.loadFromPath('config/aws.json');
 
-const s3bucket = new AWS.S3( { params: { bucket: config.bucket } } )
+AWS.config.update({
+  region: process.env.AWS_REGION, 
+  accessKeyId: process.env.AWS_ACCESS_KEY_ID, 
+  secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY
+});
+
+const s3bucket = new AWS.S3( { params: { bucket: process.env.AWS_BUCKET } } )
 
 module.exports.put = function(key, body, next) {
   var params = {
     ACL:    'public-read', 
-    Bucket: config.bucket, 
+    Bucket: process.env.AWS_BUCKET, 
     Key:    key, 
     Body:   body
   };
@@ -22,7 +27,7 @@ module.exports.put = function(key, body, next) {
 
 module.exports.get = function(key, next) {
   var params = {
-    Bucket: config.bucket, 
+    Bucket: process.env.AWS_BUCKET, 
     Key:    key 
   }
 
@@ -36,7 +41,7 @@ module.exports.get = function(key, next) {
 
 module.exports.delete = function(key, next) {
   var params = {
-    Bucket: config.bucket, 
+    Bucket: process.env.AWS_BUCKET, 
     Key:    key 
   }
 

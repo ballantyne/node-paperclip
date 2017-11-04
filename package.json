@@ -6,6 +6,7 @@
   "scripts": {
     "test": "mocha"
   },
+  "repository" : { "type": "git", "url": "http://github.com/ballantyne/node-paperclip.git" },
   "author": "Scott Ballantyne",
   "license": "MIT",
   "dependencies": {

@@ -11,10 +11,8 @@ const fs                 = require('fs');
 const multer             = require('multer')
 const Busboy             = require('busboy');
 const crypto             = require('crypto');
-
-var _ = require('underscore');
-var storage = require('./storage');
-
+const _                  = require('underscore');
+const storage            = require('./storage');
 
 module.exports.assets    = function(options) {
   
@@ -49,7 +47,7 @@ module.exports.parse          = function(options) {
 
     busboy.on('file', function(fieldname, file, filename, encoding, mimetype) {
       
-      files[fieldname] = {
+      var new_file = {
         content_type: mimetype,
         original_name: filename,
         file_size: 0,
@@ -59,43 +57,24 @@ module.exports.parse          = function(options) {
  
       file.on('data', function(data) {
         var buffer = new Buffer(data);
-        files[fieldname].file_size += data.length;
-        files[fieldname].buffer.push(buffer);
-        // stream.push(buffer);
+        new_file.file_size += data.length;
+        new_file.buffer.push(buffer);
       });
 
     
       file.on('end', function() {
-        files[fieldname].buffer = Buffer.concat(files[fieldname].buffer);
-        var stream = new fileSystem.stream({fieldname: fieldname, filename: filename}); 
-        stream.push(files[fieldname].buffer);
-        files[fieldname].stream = stream;
+        new_file.buffer = Buffer.concat(files[fieldname].buffer);
+        files[fieldname] = new_file;
       });
     });
-    
+
+    busboy.on('field', function (fieldname, val) {
+      req.body[fieldname] = val;
+    });
+
     busboy.on('finish', function() {
-      
-      var keys = _.keys(files);
-      if (keys.length > 0) {
-        for (i = 0; i < keys.length; i++) { 
-          var key = keys[i];
-          if (req.body[key] == undefined) {
-            req.body[key]= {};
-          }
-
-          req.body[key] = files[key];
-          req.body[key].temporary_key = files[key].stream.key;
-          req.body[key].stream.send(function() {
-            delete req.body[key].stream
-            if (_.last(keys) == key) {
-              next();
-            }
-          });
-        }
-      } else {
-        next();
-      }
-
+      _.extend(req.body, files);
+      next();
     });
 
     req.pipe(busboy);
@@ -103,47 +82,3 @@ module.exports.parse          = function(options) {
 }
 
 
-module.exports.parser    = function(options) { 
-  if (options == undefined) options = {};
-  return multer(options);
-}
-
-module.exports.transpose = function(req, res, next) {
-
-  var files = [], file;
-
-  if (req.file != undefined) {
-    files.push(req.file);
-    delete req.file;
-  }  
-
-  if (req.files != undefined) {
-    files.concat(req.files);
-    delete req.files;
-  }  
-  
-  for (i = 0; i < files.length; i++) {
-    file = files[i];
-    var name           = file.fieldname;
-    file.content_type  = file.mimetype;
-    file.file_size     = file.size;
-    file.original_name = file.originalname;
-    file.extension     = file.originalname.split('.').pop();
-    
-    if (file.destination) {
-      delete file.destination;
-    }
-    
-    delete file.originalname;
-    delete file.size;
-    delete file.encoding;
-    delete file.filename;
-    delete file.mimetype;
-    delete file.fieldname;
-    
-    _.extend(req.body[name], file);
-  }
-
-  next();
-
-}

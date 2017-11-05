@@ -122,7 +122,7 @@ module.exports           = klass(function(options) {
 
   contentTypeToExt: function() {
     declare('contentTypeToExt');
-    console.log(this.document);
+    // console.log(this.document);
     switch(this.document[this.has_attached_file].content_type) {
       case 'image/jpeg':
         return 'jpg';
@@ -338,7 +338,7 @@ module.exports           = klass(function(options) {
     var key     = this.render({style: name});
     
     if (name == 'original') {
-      console.log('original', self.file);
+      // console.log('original', self.file);
       self.upload(key, self.file.buffer, function(err, result) {
       // self.fileSystem.move(self.file.temporary_key, key, function(err, result) {
 	console.log(result);

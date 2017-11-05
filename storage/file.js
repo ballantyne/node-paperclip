@@ -30,6 +30,7 @@ var ensureDir = function(key, next) {
 
 module.exports.stream = function(options) {
   var StreamingWrite = klass(function(options) {
+
     this.options = options;
     if (this.options.key) {
       this.key = this.options.key;
@@ -38,7 +39,9 @@ module.exports.stream = function(options) {
     }
   
     this.stream = fs.createWriteStream(this.key);
+    
   }).methods({
+
     generateKey: function() {
       var extension = this.options.filename.split('.').pop();
       const hash = crypto.createHmac('sha256', this.options.fieldname)
@@ -52,18 +55,21 @@ module.exports.stream = function(options) {
       this.stream.write(buffer)
     },
 
-   
-
+    save: function(next) {
+      this.stream.on('close', function() {
+        if (next) {
+          next();
+        }
+      })
+      this.stream.end();   
+    },
 
     send: function(next) {
-      this.stream.end();
-      if (next) {
-        next();
-      }
+      this.save(next);
     }
   })
-  return new StreamingWrite(options);
 
+  return new StreamingWrite(options);
 }
 
 

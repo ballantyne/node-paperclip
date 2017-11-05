@@ -17,6 +17,7 @@ const s3bucket = new AWS.S3( { params: { bucket: process.env.AWS_BUCKET } } )
 
 module.exports.stream = function(options) {
   var StreamingUpload = klass(function(options) {
+    
     this.options = options;
     this.stream = new Readable;
 
@@ -27,6 +28,7 @@ module.exports.stream = function(options) {
     }
 
   }).methods({
+    
     generateKey: function() {
       var extension = this.options.filename.split('.').pop();
       const hash = crypto.createHmac('sha256', this.options.fieldname)
@@ -43,14 +45,6 @@ module.exports.stream = function(options) {
 	"Key": self.key
       });
 
-      this.file.on('error', function (error) {
-	console.log(error);
-      });
-
-      this.file.on('part', function (details) {
-	console.log(details);
-      });
-
       this.file.on('uploaded', function (details) {
 	console.log(details);
         if (next) {
@@ -64,13 +58,15 @@ module.exports.stream = function(options) {
       this.stream.push(buffer)
     },
 
+    fromFile: function(path, next) {
+      this.stream = fs.createReadStream(path);
+      this.upload(next);
+
+    },
+
     send: function(next) {
       this.stream.push(null);
-      this.upload(function() {
-        if (next) {
-          next();
-        }
-      });
+      this.upload(next);
     }
   })
   return new StreamingUpload(options);
@@ -120,15 +116,15 @@ module.exports.delete = function(key, next) {
 
 module.exports.move = function(oldkey, key, next) {
   var params = {
-    Bucket: process.env.AWS_BUCKET, 
-    Key:    key, 
+    Bucket:       process.env.AWS_BUCKET, 
+    Key:          key, 
     CopySource:   oldkey
   };
 
   s3bucket.copyObject(params, function(err, data){
     var params = {
-      Bucket: process.env.AWS_BUCKET, 
-      Key: oldkey
+      Bucket:     process.env.AWS_BUCKET, 
+      Key:        oldkey
     };
     
     s3bucket.deleteObject(params, function(err, deleteData) {

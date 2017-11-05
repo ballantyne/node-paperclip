@@ -329,7 +329,7 @@ module.exports           = klass(function(options) {
     })
   },
 
-  processOriginal: function(next) {
+  processOriginal: function(key, next) {
     var self = this;
     if (self.file.path) {
       self.fileSystem.stream(self.file.path, key, function(err, result) {
@@ -354,7 +354,7 @@ module.exports           = klass(function(options) {
     var key              = this.render({style: name});
     
     if (name == 'original') {
-      self.processOriginal(function() {
+      self.processOriginal(key, function() {
         next(null, options);
       });
     } else {

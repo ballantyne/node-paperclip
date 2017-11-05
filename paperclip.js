@@ -339,8 +339,8 @@ module.exports           = klass(function(options) {
     
     if (name == 'original') {
       // console.log('original', self.file);
-      // self.upload(key, self.file.buffer, function(err, result) {
-      self.fileSystem.move(self.file.original_upload, key, function(err, result) {
+      self.upload(key, self.file.buffer, function(err, result) {
+      // self.fileSystem.move(self.file.original_upload, key, function(err, result) {
 	console.log(result);
         next(null, options);
       });

@@ -31,13 +31,13 @@ var identifyOrientation = function(orientation) {
 
 module.exports = klass(function(file) {
 
-  this.file = file;
+  this.file    = file;
 
 }).methods({
 
   make: function(next) {
-    var self = this;
-    var image = sharp((this.file.buffer ? this.file.buffer : this.file));
+    var self   = this;
+    var image  = sharp((this.file.buffer ? this.file.buffer : this.file));
     image.metadata().then(function(data) {
       var orientation = identifyOrientation(data.orientation);
       var geometry = {width: data.width, 

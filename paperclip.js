@@ -17,25 +17,25 @@
 // that turned out to be something that I thought other people might find useful.  This code 
 // certainly isn't perfect and it also isn't finished.
 
-const klass         = require('klass');
-const fs            = require('fs');
-const request       = require('request');
-const async         = require('async');
-const Handlebars    = require('handlebars');
-const crypto        = require('crypto');
-const _             = require('underscore');
-const randomstring  = require('randomstring');
-const pluralize     = require('pluralize');
+const klass              = require('klass');
+const fs                 = require('fs');
+const request            = require('request');
+const async              = require('async');
+const Handlebars         = require('handlebars');
+const crypto             = require('crypto');
+const _                  = require('underscore');
+const randomstring       = require('randomstring');
+const pluralize          = require('pluralize');
 
-const sharp         = require('sharp');
+const sharp              = require('sharp');
 
-const storage       = require('./storage');
-const processors    = require('./processors');
-const Geometry      = require('./geometry');
+const storage            = require('./storage');
+const processors         = require('./processors');
+const Geometry           = require('./geometry');
 
 var declare = function(method, args) {
   var watch = [];
-  var should_print  = (watch.indexOf(method) > -1)
+  var should_print       = (watch.indexOf(method) > -1)
   if (should_print) {
     console.log('');
     if (args) {
@@ -75,18 +75,18 @@ module.exports           = klass(function(options) {
   }
 
   if (options.storage) {
-    this.storage    = options.storage;
-    this.fileSystem = storage[options.storage];
+    this.storage         = options.storage;
+    this.fileSystem      = storage[options.storage];
   } else {
-    this.storage    = 's3';
-    this.fileSystem = storage.s3;
+    this.storage         = 's3';
+    this.fileSystem      = storage.s3;
   }
 
 }).methods({
 
   toSave: function(save) {
-    save.updated_at    = new Date();
-    delete save.temporary_key;
+    save.updated_at      = new Date();
+    delete save.original_upload;
     delete save.buffer;
     delete save.path;
     delete save.extension;
@@ -115,8 +115,8 @@ module.exports           = klass(function(options) {
 
   originalNameToExt: function() {
     declare('originalNameToExt');
-    var name = this.document[this.has_attached_file].original_name
-    var ext = name.split('.').pop();
+    var name             = this.document[this.has_attached_file].original_name
+    var ext              = name.split('.').pop();
     return ext;
   },
 
@@ -162,10 +162,10 @@ module.exports           = klass(function(options) {
 
   identify: function(next) {
     declare('identify');
-    var self = this;
-    var image = sharp(self.file.buffer);
+    var self             = this;
+    var image            = sharp(self.file.buffer);
     image.metadata().then(function(data) {
-      self.data = data;
+      self.data          = data;
       if (next) {
         next(null, data);
       }
@@ -178,7 +178,7 @@ module.exports           = klass(function(options) {
       return this.prefix;
     } else {
       if (this.class_name == undefined) {
-        this.class_name = changeCase.snakeCase(this.document.contructor.modelName);
+        this.class_name  = changeCase.snakeCase(this.document.contructor.modelName);
       }
       return '{{class_name}}/{{plural}}/{{document._id}}' 
     }
@@ -195,21 +195,21 @@ module.exports           = klass(function(options) {
 
   renderPrefix: function() {
     declare('renderPrefix');
-    var template    = Handlebars.compile(this.generatePrefix());
+    var template         = Handlebars.compile(this.generatePrefix());
     return template(this);
   },
 
   renderFileName: function(options) {
     declare('renderFileName', options);
-    var template    = Handlebars.compile(this.generateFileName());
+    var template         = Handlebars.compile(this.generateFileName());
     return template(options);
   },
 
   render: function(options) {
     declare('render', options);
     if (options.extension == undefined) {
-      options.extension = this.detectExtension()
-      options.extension = options.extension.toLowerCase();
+      options.extension  = this.detectExtension()
+      options.extension  = options.extension.toLowerCase();
     }
     return this.renderPrefix() + "/" + this.renderFileName(options);
   },
@@ -283,8 +283,8 @@ module.exports           = klass(function(options) {
 
   processDelete: function(next) {
     declare('processDelete');
-    var self     = this;
-    var results  = [];
+    var self             = this;
+    var results          = [];
     _.each(self.styles, function(style) {
       self.deleteStyle(style, function(err, result) {
 	results.push(result);
@@ -300,10 +300,10 @@ module.exports           = klass(function(options) {
   // this code, I was thinking of adding it to the middleware.
   processUrl: function(next) {
     declare('processUrl');
-    var self          = this;
-    var obj           = {};
-    obj.path          = '/tmp/' + randomstring.generate();
-    obj.original_name = this.document[this.has_attached_file].original_url.split('/').pop();
+    var self             = this;
+    var obj              = {};
+    obj.path             = '/tmp/' + randomstring.generate();
+    obj.original_name    = this.document[this.has_attached_file].original_url.split('/').pop();
 
     this.downloadUrl(this.document.original_url, obj.path, function() {
       self.identify({input: obj.path}, function(err, identity) {
@@ -319,7 +319,7 @@ module.exports           = klass(function(options) {
 
   transform: function(options, next) {
     declare('transform', options);
-    var self         = this;
+    var self             = this;
     
     var processor = new processors.resize(this);
     processor.process(options, function(err, buffer) {
@@ -331,16 +331,16 @@ module.exports           = klass(function(options) {
 
   processAndUpload: function(style, next) {
     declare('processAndUpload', style);
-    var self    = this;
+    var self             = this;
 
-    var name    = _.first(_.keys(style));
-    var options = style[name];
-    var key     = this.render({style: name});
+    var name             = _.first(_.keys(style));
+    var options          = style[name];
+    var key              = this.render({style: name});
     
     if (name == 'original') {
       // console.log('original', self.file);
-      self.upload(key, self.file.buffer, function(err, result) {
-      // self.fileSystem.move(self.file.temporary_key, key, function(err, result) {
+      // self.upload(key, self.file.buffer, function(err, result) {
+      self.fileSystem.move(self.file.original_upload, key, function(err, result) {
 	console.log(result);
         next(null, options);
       });
@@ -355,9 +355,9 @@ module.exports           = klass(function(options) {
 
   deleteStyle: function(style, next) {
     declare('deleteStyle', style);
-    var self    = this;
-    var name    = _.first(_.keys(style));
-    var key     = this.render({style: name, extension: this.contentTypeToExt() });
+    var self             = this;
+    var name             = _.first(_.keys(style));
+    var key              = this.render({style: name, extension: this.contentTypeToExt() });
 
     this.fileSystem.delete(key, function(err, result) {
       next(result);

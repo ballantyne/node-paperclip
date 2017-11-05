@@ -10,7 +10,9 @@ const Geometry = require('./geometry');
 const PARSER   = new RegExp(/\b(\d*)x?(\d*)\b(?:,(\d?))?(\@\>|\>\@|[\>\<\#\@\%^!])?/i);
 
 module.exports = klass(function(string) {
+
   this.string  = string;
+
 }).methods({
   
   make: function() {

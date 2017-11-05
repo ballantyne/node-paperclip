@@ -41,7 +41,7 @@ module.exports.parse          = function(options) {
     var files = {};
 
     var busboy = new Busboy({ headers: req.headers });
-
+    console.log(req.headers);
     busboy.on('file', function(fieldname, file, filename, encoding, mimetype) {
       
       var new_file = {
@@ -50,16 +50,18 @@ module.exports.parse          = function(options) {
         file_size: 0,
         extension: filename.split('.').pop()
       };
-
+      // new_file.original_upload = fileSystem.generateKey(fieldname, filename)
       new_file.buffer = [];
  
       file.on('data', function(data) {
         var buffer = new Buffer(data);
         new_file.file_size += data.length;
         new_file.buffer.push(buffer);
+
       });
 
-    
+      // fileSystem.stream(new_file.original_upload, file);
+   
       file.on('end', function() {
         new_file.buffer = Buffer.concat(new_file.buffer);
         files[fieldname] = new_file;

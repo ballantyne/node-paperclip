@@ -28,49 +28,24 @@ var ensureDir = function(key, next) {
   });
 }
 
-module.exports.stream = function(options) {
-  var StreamingWrite = klass(function(options) {
-
-    this.options = options;
-    if (this.options.key) {
-      this.key = this.options.key;
-    } else {
-      this.generateKey();
-    }
-  
-    this.stream = fs.createWriteStream(this.key);
-    
-  }).methods({
-
-    generateKey: function() {
-      var extension = this.options.filename.split('.').pop();
-      const hash = crypto.createHmac('sha256', this.options.fieldname)
-        .update(this.options.filename)
-        .digest('hex');
-
-      this.key = '/tmp/' + hash + "." + extension;
-    },   
- 
-    push: function(buffer) {
-      this.stream.write(buffer)
-    },
-
-    save: function(next) {
-      this.stream.on('close', function() {
-        if (next) {
-          next();
-        }
-      })
-      this.stream.end();   
-    },
-
-    send: function(next) {
-      this.save(next);
-    }
+module.exports.stream = function(key, stream, next) {
+  var writeStream = fs.createWriteStream(key); 
+  writeStream.on('close', function() {
+    next();
   })
-
-  return new StreamingWrite(options);
+  stream.pipe(writeStream);
 }
+
+module.exports.generateKey = function(fieldname, filename, next) {
+  var now = new Date().getTime().toString();
+  var extension = filename.split('.').pop();
+  const hash = crypto.createHmac('sha256', fieldname+now)
+    .update(filename)
+    .digest('hex');
+
+  return '/tmp/' + hash + "." + extension;
+}
+
 
 
 module.exports.put = function(key, body, next) {

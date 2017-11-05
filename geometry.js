@@ -1,11 +1,11 @@
 // code adapted from https://github.com/thoughtbot/paperclip
 //
 
-const klass         = require('klass');
-const fs            = require('fs');
+const klass          = require('klass');
+const fs             = require('fs');
 
-const Parser        = require('./parser');
-const Detector      = require('./geometry_detector');
+const Parser         = require('./parser');
+const Detector       = require('./geometry_detector');
 
 const EXIF_ROTATED_ORIENTATION_VALUES = [5, 6, 7, 8];
 
@@ -18,16 +18,16 @@ var Geometry = klass(function(width, height, modifier) {
     this.modifier    = options.modifier;
     this.orientation = options.orientation;
   } else {
-    this.width    = width;
-    this.height   = height;
-    this.modifier = modifier;
+    this.width       = width;
+    this.height      = height;
+    this.modifier    = modifier;
   }
 
 }).statics({
   
   from_file: function(file_name, next) {
     new Detector(file_name).make(function(err, geometry) {
-      var geometry = new Geometry(geometry);
+      var geometry  = new Geometry(geometry);
       if (next) {
         next(err, geometry);
       } else {
@@ -38,7 +38,7 @@ var Geometry = klass(function(width, height, modifier) {
   },
 
   parse: function(string) {
-    var parser = new Parser(string).match();
+    var parser      = new Parser(string).match();
     return new Geometry(parser);
   }
 
@@ -70,10 +70,10 @@ var Geometry = klass(function(width, height, modifier) {
 
   auto_orient:       function() {
     if (EXIF_ROTATED_ORIENTATION_VALUES.indexOf(this.orientation) > -1) {
-      var h = this.height;
-      var w = this.width;
-      this.height = w;
-      this.width = h;
+      var h         = this.height;
+      var w         = this.width;
+      this.height   = w;
+      this.width    = h;
       this.orientation -= 4;
     };
   },

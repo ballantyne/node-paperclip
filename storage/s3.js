@@ -6,6 +6,7 @@ const klass     = require('klass');
 const stream    = require('stream');
 const Readable  = stream.Readable;
 const crypto    = require('crypto');
+const fs        = require('fs');
 
 AWS.config.update({
   region: process.env.AWS_REGION, 
@@ -15,24 +16,51 @@ AWS.config.update({
 
 const s3bucket = new AWS.S3( { params: { bucket: process.env.AWS_BUCKET } } )
 
-module.exports.stream = function(key, stream, next) {
+module.exports.stream = function(stream, key, next) {
+  console.log(arguments);
 
-  console.log(stream)
+  if (typeof stream == 'string') stream = fs.createReadStream(stream);
 
-  var params = {
-    ACL:    'public-read', 
-    Bucket: process.env.AWS_BUCKET, 
-    Key:    key, 
-    Body:   stream
-  };
-  s3bucket.upload(params, function(err, data){
-    console.log(err);
-    console.log('finished uploading stream', params);
-    if (next) {
-      next(err, data);
-    }
+  stream.on('open', function () {
+    var params = {
+      ACL:    'public-read', 
+      Bucket: process.env.AWS_BUCKET, 
+      Key:    key,
+      Body:   stream
+    };
+
+    s3bucket.putObject(params, function(err, data){
+      if (next) {
+	next(err, data);
+      }
+    });
   });
 }
+
+// module.exports.stream = function(key, stream, next) {
+
+//   // s3stream version
+//   var params = {
+//     ACL:    'public-read', 
+//     Bucket: process.env.AWS_BUCKET, 
+//     Key:    key 
+//   };
+ 
+
+//   var upload = s3Stream.upload(params);
+
+//   upload.on('error', function (err) {
+//     callback(err);
+//   });
+
+//   upload.on('uploaded', function (details) {
+//     if (next) {
+//       next();
+//     }
+//   });
+//   stream.pipe(upload);
+
+// }
 
 module.exports.generateKey = function(fieldname, filename) {
   var now = new Date().getTime().toString();
@@ -41,7 +69,7 @@ module.exports.generateKey = function(fieldname, filename) {
     .update(filename)
     .digest('hex');
 
-  return 'tmp/' + hash + "." + extension;
+  return 'tmp/' + fieldname + "-" + hash + "." + extensio;
 }
 // I sort of expected to be able to push a buffer piece by piece to the cloud
 // and it seems like I am not able do that.  I haven't tried the multipart upload

@@ -86,7 +86,7 @@ module.exports           = klass(function(options) {
 
   toSave: function(save) {
     save.updated_at      = new Date();
-    delete save.original_upload;
+    delete save.path;
     delete save.buffer;
     delete save.path;
     delete save.extension;
@@ -329,6 +329,22 @@ module.exports           = klass(function(options) {
     })
   },
 
+  processOriginal: function(next) {
+    var self = this;
+    if (self.file.path) {
+      self.fileSystem.stream(self.file.path, key, function(err, result) {
+        fs.unlink(self.file.path, function(err) {
+          next(null, options);
+        })
+      });
+    } else {
+      self.upload(key, self.file.buffer, function(err, result) {
+        next();
+      });
+    }
+  },
+
+
   processAndUpload: function(style, next) {
     declare('processAndUpload', style);
     var self             = this;
@@ -338,10 +354,7 @@ module.exports           = klass(function(options) {
     var key              = this.render({style: name});
     
     if (name == 'original') {
-      // console.log('original', self.file);
-      self.upload(key, self.file.buffer, function(err, result) {
-      // self.fileSystem.move(self.file.original_upload, key, function(err, result) {
-	console.log(result);
+      self.processOriginal(function() {
         next(null, options);
       });
     } else {

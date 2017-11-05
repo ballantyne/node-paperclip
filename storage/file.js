@@ -5,6 +5,7 @@ const mkdirp     = require('mkdirp');
 const root       = (config.root ? config.root : (process.env.PWD));
 const assets     = (config.assets ? config.assets : '/public')
 const public_dir = root + '/' + assets;
+const crypto     = require('crypto');
 
 var fullPath     = function(key) {
   return public_dir + "/" + key;
@@ -31,7 +32,9 @@ var ensureDir = function(key, next) {
 module.exports.stream = function(key, stream, next) {
   var writeStream = fs.createWriteStream(key); 
   writeStream.on('close', function() {
-    next();
+    if (next) {
+      next();
+    }
   })
   stream.pipe(writeStream);
 }
@@ -43,7 +46,7 @@ module.exports.generateKey = function(fieldname, filename, next) {
     .update(filename)
     .digest('hex');
 
-  return '/tmp/' + hash + "." + extension;
+  return '/tmp/' + fieldname + "-" + hash + "." + extension;
 }
 
 

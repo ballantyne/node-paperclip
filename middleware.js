@@ -31,26 +31,33 @@ module.exports.parse          = function(options) {
   if (options.storage) {
     var fileSystem = storage[options.storage];
   } else {
-    var fileSystem = storage.s3;
+    var fileSystem = storage.file;
+  }
+
+  if (options.writeIf == undefined) {
+    options.writeIf = 5000000;
   }
 
   return function(req, res, next) {
-    // console.log(req.headers);
-    // console.log('');
   
     var files = {};
 
     var busboy = new Busboy({ headers: req.headers });
-    console.log(req.headers);
+    
     busboy.on('file', function(fieldname, file, filename, encoding, mimetype) {
-      
+      var largeFile = (req.headers['content-length']) > options.writeIf;
+ 
       var new_file = {
         content_type: mimetype,
         original_name: filename,
         file_size: 0,
         extension: filename.split('.').pop()
       };
-      // new_file.original_upload = fileSystem.generateKey(fieldname, filename)
+
+      if (largeFile) {      
+        new_file.path = fileSystem.generateKey(fieldname, filename);
+        fileSystem.stream(new_file.original_upload, file);
+      }
       new_file.buffer = [];
  
       file.on('data', function(data) {
@@ -60,7 +67,6 @@ module.exports.parse          = function(options) {
 
       });
 
-      // fileSystem.stream(new_file.original_upload, file);
    
       file.on('end', function() {
         new_file.buffer = Buffer.concat(new_file.buffer);
@@ -73,6 +79,7 @@ module.exports.parse          = function(options) {
     });
 
     busboy.on('finish', function() {
+      console.log(files);
       _.extend(req.body, files);
       next();
     });

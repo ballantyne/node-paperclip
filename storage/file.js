@@ -1,12 +1,12 @@
-const config = require('config');
-const fs     = require('fs');
-const mkdirp = require('mkdirp');
+const config     = require('config');
+const fs         = require('fs');
+const mkdirp     = require('mkdirp');
 
 const root       = (config.root ? config.root : (process.env.PWD));
 const assets     = (config.assets ? config.assets : '/public')
 const public_dir = root + '/' + assets;
 
-var fullPath = function(key) {
+var fullPath     = function(key) {
   return public_dir + "/" + key;
 }
 
@@ -113,7 +113,9 @@ module.exports.delete = function(key, next) {
 module.exports.move = function(oldkey, key, next) {
   ensureDir(key, function(err) {
     fs.rename('/'+oldkey, key, function(err) {
-      next(err)
+      if (next) {
+        next(err);
+      }
     })
   })
 }

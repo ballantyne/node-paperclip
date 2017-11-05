@@ -61,7 +61,6 @@ module.exports.stream = function(options) {
     fromFile: function(path, next) {
       this.stream = fs.createReadStream(path);
       this.upload(next);
-
     },
 
     send: function(next) {

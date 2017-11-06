@@ -29,7 +29,8 @@ module.exports.stream = function(stream, key, next) {
 
     s3bucket.putObject(params, function(err, data){
       if (next) {
-	next(err, data);
+	console.log('finished uploading', key);
+        next(err, data);
       }
     });
   });

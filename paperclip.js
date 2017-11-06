@@ -32,19 +32,7 @@ const sharp              = require('sharp');
 const storage            = require('./storage');
 const processors         = require('./processors');
 const Geometry           = require('./geometry');
-
-var declare = function(method, args) {
-  var watch = [];
-  var should_print       = (watch.indexOf(method) > -1)
-  if (should_print) {
-    console.log('');
-    if (args) {
-      console.log(method, args);
-    } else {
-      console.log(method);
-    }
-  }
-}
+const declare            = require('./logger')(['transform']);
 
 module.exports           = klass(function(options) {
   declare('initialize', options);
@@ -214,49 +202,12 @@ module.exports           = klass(function(options) {
     return this.renderPrefix() + "/" + this.renderFileName(options);
   },
 
-  // currently not used.  was going to use it to delete temp files, but the library 
-  // is configured to only use buffers by default and so I didn't take the time
-  // to write the code to delete temp files.
-  eraseFile: function(file, next) {
-    declare('eraseFile', file);
-    fs.unlink(file, function(err) {
-      next(err);
-    })
-  },
-
   // currently not used.  was planning on using this function to download files from
   // s3 to reprocess them if the sizes change, but I haven't rewritten that code yet.
   download: function(key, path, next) {
     declare('download', {key: key, path: path});
     this.fileSystem.get(key, function(err, data) {
       fs.writeFile(path, data, function(err) {
-        if (err) {
-          console.log(err);
-        }
-        next(err, data); 
-      });
-    });
-  },
-
-  upload: function(key, data, next) {
-    declare('upload', key);
-    this.fileSystem.put(key, data, function(err, data) {
-      if (err) {
-        console.log(err);
-      }
-      next(err, data); 
-    });
-  },
-
-  // I don't think that this function is used anymore because the default is a buffer 
-  // and I stopped using imagemagick because sharp can take a buffer so we never have 
-  // to write the file to the disk at all which will be really nice when using this on
-  // platforms like heroku.
-  uploadFile: function(path, key, next) {
-    declare('uploadFile', {path: path, key: key});
-    var self     = this;
-    fs.readFile(path, function(err, data) {
-      self.upload(key, data, function(err, data) {
         if (err) {
           console.log(err);
         }
@@ -320,8 +271,9 @@ module.exports           = klass(function(options) {
   transform: function(options, next) {
     declare('transform', options);
     var self             = this;
+    var specificProcess = processors.load(options.processor);
+    var processor = new specificProcess(this);
     
-    var processor = new processors.resize(this);
     processor.process(options, function(err, buffer) {
       if (next) {
         next(err, buffer);
@@ -332,13 +284,13 @@ module.exports           = klass(function(options) {
   processOriginal: function(key, next) {
     var self = this;
     if (self.file.path) {
-      self.fileSystem.stream(self.file.stream, key, function(err, result) {
-        fs.unlink(self.file.path, function(err) {
-          next(null, options);
-        })
+       self.fileSystem.stream(self.file.path, key, function(err, result) {
+         fs.unlink(self.file.path, function(err) {
+           next();
+         });
       });
     } else {
-      self.upload(key, self.file.buffer, function(err, result) {
+      self.fileSystem.put(key, self.file.buffer, function(err, result) {
         next();
       });
     }
@@ -358,33 +310,12 @@ module.exports           = klass(function(options) {
         next(null, options);
       });
     } else {
-      // experimenting with streams
-      // self.processAndStream(key, options, function(err, result) {
-      //   next(null, options);
-      // })
-      
       self.transform(options, function(err, buffer) {
-	self.upload(key, buffer, function(err, result) {
+	self.fileSystem.put(key, buffer, function(err, result) {
 	  next(null, options);
 	});
       });
     }
-  },
-
-  // experiementing with streams
-  processAndStream: function(key, options, next) {
-    declare('processAndStream', options);
-    var self             = this;
-    
-    console.log(self);
-
-    var upload           = new stream.PassThrough();
-    var tmpWriteStream      = '/tmp/'+randomstring.generate();
-    var processor        = new processors.resize(this);
-
-    self.fileSystem.stream(self.file.stream.pipe(processor.stream(options)).pipe(upload.pipe(fs.createWriteStream(tmpWriteStream))), key, function(err, result) {
-      next(err, result);
-    })
   },
 
   deleteStyle: function(style, next) {

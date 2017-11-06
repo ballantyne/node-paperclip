@@ -17,7 +17,7 @@ AWS.config.update({
 const s3bucket = new AWS.S3( { params: { bucket: process.env.AWS_BUCKET } } )
 
 module.exports.stream = function(stream, key, next) {
-  console.log(arguments);
+  // console.log(arguments);
 
   if (typeof stream == 'string') stream = fs.createReadStream(stream);
 
@@ -37,30 +37,22 @@ module.exports.stream = function(stream, key, next) {
   });
 }
 
-// module.exports.stream = function(key, stream, next) {
+module.exports.pipe = function(key) {
+  var pass = new stream.PassThrough();
+  // s3stream version
+  var params = {
+    ACL:    'public-read', 
+    Bucket: process.env.AWS_BUCKET, 
+    Key:    key,
+    Body:   pass
+  };
 
-//   // s3stream version
-//   var params = {
-//     ACL:    'public-read', 
-//     Bucket: process.env.AWS_BUCKET, 
-//     Key:    key 
-//   };
- 
+  s3bucket.putObject(params, function(err, data) {
+    console.log(err, data);
+  });
 
-//   var upload = s3Stream.upload(params);
-
-//   upload.on('error', function (err) {
-//     callback(err);
-//   });
-
-//   upload.on('uploaded', function (details) {
-//     if (next) {
-//       next();
-//     }
-//   });
-//   stream.pipe(upload);
-
-// }
+  return pass;
+}
 
 module.exports.generateKey = function(fieldname, filename) {
   var now = new Date().getTime().toString();

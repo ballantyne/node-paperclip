@@ -5,6 +5,42 @@ const sharp    = require('sharp');
 module.exports = klass(function(paperclip) {
   this.paperclip = paperclip;
 }).methods({
+  stream: function(options, next) {
+    var self         = this.paperclip;
+
+    var geometry     = new Geometry({width: self.data.width, height: self.data.height})
+    var strategy     = geometry.strategy(options);
+    var image        = sharp();
+
+    switch(strategy.resize.modifier) {
+      case '!':
+        image = image.resize(strategy.resize.width, strategy.resize.height).ignoreAspectRatio();
+        break;
+      case '#':
+        image = image.resize(strategy.resize.width, strategy.resize.height).crop(sharp.strategy.attention);
+        break;
+      case '>':
+        image = image.resize(strategy.resize.width, strategy.resize.height).max();
+        break;
+      case '<':
+        image = image.resize(strategy.resize.width, strategy.resize.height).min();
+        break;
+      default:
+        image = image.resize(strategy.resize.width, strategy.resize.height);
+    }
+
+    if (strategy.extract) {
+      image   = image.extract(strategy.extract);
+    }
+
+    // image = image.toStream();
+
+    if (next) {
+      next(err, image);
+    } else {
+      return image;
+    }
+  },
 
   process: function(options, next) {
     var self         = this.paperclip;

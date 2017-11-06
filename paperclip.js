@@ -26,7 +26,7 @@ const crypto             = require('crypto');
 const _                  = require('underscore');
 const randomstring       = require('randomstring');
 const pluralize          = require('pluralize');
-
+const stream             = require('stream');
 const sharp              = require('sharp');
 
 const storage            = require('./storage');
@@ -86,6 +86,7 @@ module.exports           = klass(function(options) {
 
   toSave: function(save) {
     save.updated_at      = new Date();
+    delete save.stream;
     delete save.path;
     delete save.buffer;
     delete save.path;
@@ -272,7 +273,7 @@ module.exports           = klass(function(options) {
     this.identify(function() {
       _.each(self.styles, function(style) {
         self.processAndUpload(style, function(err, result) {
-	  results.push(result);
+	  // results.push(result);
           if (_.keys(_.last(self.styles))[0] == _.keys(style)[0]) {
             next(err, results);
           }
@@ -332,7 +333,7 @@ module.exports           = klass(function(options) {
   processOriginal: function(key, next) {
     var self = this;
     if (self.file.path) {
-      self.fileSystem.stream(self.file.path, key, function(err, result) {
+      self.fileSystem.stream(self.file.stream, key, function(err, result) {
         fs.unlink(self.file.path, function(err) {
           next(null, options);
         })
@@ -358,12 +359,29 @@ module.exports           = klass(function(options) {
         next(null, options);
       });
     } else {
+      // experimenting with streams
+      // self.processAndStream(key, options, function(err, result) {
+      //   next(null, options);
+      // })
+      
       self.transform(options, function(err, buffer) {
 	self.upload(key, buffer, function(err, result) {
 	  next(null, options);
 	});
       });
     }
+  },
+
+  // experiementing with streams
+  processAndStream: function(key, options, next) {
+    declare('processAndStream', options);
+    var self             = this;
+    var upload = new stream.PassThrough();
+ 
+    var processor = new processors.resize(this);
+    self.fileSystem.stream(self.file.stream.pipe(processor.stream(options)).pipe(upload), key, function(err, result) {
+      next(err, result);
+    })
   },
 
   deleteStyle: function(style, next) {

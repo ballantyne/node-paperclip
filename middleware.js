@@ -51,7 +51,8 @@ module.exports.parse          = function(options) {
         content_type: mimetype,
         original_name: filename,
         file_size: 0,
-        extension: filename.split('.').pop()
+        extension: filename.split('.').pop(),
+        stream: file
       };
 
       if (largeFile) {      

@@ -271,8 +271,8 @@ module.exports           = klass(function(options) {
   transform: function(options, next) {
     declare('transform', options);
     var self             = this;
-    var specificProcess = processors.load(options.processor);
-    var processor = new specificProcess(this);
+    var Process = processors.load(options.processor);
+    var processor = new Process(this);
     
     processor.process(options, function(err, buffer) {
       if (next) {

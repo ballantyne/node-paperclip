@@ -8,4 +8,9 @@
 // might need to be a thoughtful consideration of how to make all that people 
 // would expect to work to work.
 
+
+// var loader      = require('../loader');
+// var databases = { mongoose: require('./mongoose') };
+
+// module.exports.load = loader('mongoose', databases);
 module.exports.mongoose = require('./mongoose');

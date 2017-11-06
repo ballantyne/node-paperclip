@@ -1,12 +1,15 @@
 // I tried to make two examples of how storage could be configured.
-// there need to be three functions, put, get and delete.  
+// there need to be three functions, stream, put, get and delete.  
+//
+// STREAM takes a stream or a path to a file to a stream and key which is 
+// where you want to put the file.
 //
 // PUT takes a buffer so you need to have read the file or have the 
 // original buffer from the upload.
 //
-// GET returns a buffer.
+// GET takes a key and returns a buffer.
 //
-// DELETE will send a delete command to the api or it will unlink the 
+// DELETE takes a key will send a delete command to the api or it will unlink the 
 // file on the server.
 //
 // I think that is probably all that is needed for the storage api for now.
@@ -18,6 +21,10 @@
 //
 //
 
+var loader      = require('../loader');
+var fileSystems = { s3: require('./s3'), file: require('./file') };
 
-module.exports.s3   = require('./s3');
-module.exports.file = require('./file');
+module.exports.load = loader('s3', fileSystems);
+
+module.exports.s3   = fileSystems['s3'];
+module.exports.file = fileSystems['file'];

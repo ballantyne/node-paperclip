@@ -35,26 +35,6 @@ module.exports.stream = function(stream, key, next) {
   });
 }
 
-
-module.exports.upload = function(stream, key, next) {
-  if (typeof stream == 'string') stream = fs.createReadStream(stream);
-
-  stream.on('open', function () {
-    var params = {
-      ACL:    'public-read', 
-      Bucket: process.env.AWS_BUCKET, 
-      Key:    key,
-      Body:   stream
-    };
-
-    s3bucket.upload(params, function(err, data){
-      if (next) {
-	next(err, data);
-      }
-    });
-  });
-}
-
 module.exports.generateKey = function(fieldname, filename) {
   var now = new Date().getTime().toString();
   var extension = filename.split('.').pop();

@@ -17,65 +17,65 @@
 // that turned out to be something that I thought other people might find useful.  This code 
 // certainly isn't perfect and it also isn't finished.
 
-const klass              = require('klass');
-const fs                 = require('fs');
-const request            = require('request');
-const async              = require('async');
-const Handlebars         = require('handlebars');
-const crypto             = require('crypto');
-const _                  = require('underscore');
-const randomstring       = require('randomstring');
-const pluralize          = require('pluralize');
-const stream             = require('stream');
-const sharp              = require('sharp');
-const fileType           = require('file-type');
+const klass                = require('klass');
+const fs                   = require('fs');
+const request              = require('request');
+const async                = require('async');
+const Handlebars           = require('handlebars');
+const crypto               = require('crypto');
+const _                    = require('underscore');
+const randomstring         = require('randomstring');
+const pluralize            = require('pluralize');
+const stream               = require('stream');
+const sharp                = require('sharp');
+const fileType             = require('file-type');
 
-const storage            = require('./storage');
-const processors         = require('./processors');
-const Geometry           = require('./geometry');
-const TypeUtils          = require('./type_utilities');
-const declare            = require('./logger')([]);
+const storage              = require('./storage');
+const processors           = require('./processors');
+const Geometry             = require('./geometry');
+const TypeUtils            = require('./type_utilities');
+const declare              = require('./logger')([]);
 
-module.exports           = klass(function(options) {
+module.exports             = klass(function(options) {
   declare('initialize', options);
   
-  this.has_attached_file = options.has_attached_file;
-  this.plural            = pluralize(options.has_attached_file);
+  this.has_attached_file   = options.has_attached_file;
+  this.plural              = pluralize(options.has_attached_file);
   
   if (options.document) {
-    this.document        = options.document;
+    this.document          = options.document;
   }
   if (options.class_name) {
-    this.class_name      = options.class_name;
+    this.class_name        = options.class_name;
   }
-  this.styles            = options.styles;
+  this.styles              = options.styles;
 
-  this.attachment        = (options.attachment ? options.attachment : options.has_attached_file);
+  this.attachment          = (options.attachment ? options.attachment : options.has_attached_file);
 
   if (options.name_format) {
-    this.name_format     = options.name_format;
+    this.name_format        = options.name_format;
   }
 
   if (options.prefix) {
-    this.prefix          = options.prefix;
+    this.prefix             = options.prefix;
   }
 
   if (options.url && this.url.indexOf('hash_digest') > -1) {
-    this.hash_digest     = this.generateHash()  
+    this.hash_digest        = this.generateHash()  
   }
 
   if (options.storage) {
-    this.storage         = options.storage;
-    this.fileSystem      = storage[options.storage];
+    this.storage            = options.storage;
+    this.fileSystem         = storage.load(options.storage);
   } else {
-    this.storage         = 's3';
-    this.fileSystem      = storage.s3;
+    this.storage            = 's3';
+    this.fileSystem         = storage.s3;
   }
 
 }).methods({
 
   toSave: function(save) {
-    save.updated_at      = new Date();
+    save.updated_at         = new Date();
     delete save.stream;
     delete save.path;
     delete save.buffer;
@@ -111,7 +111,7 @@ module.exports           = klass(function(options) {
 
   identify: function(next) {
     declare('identify');
-    var self             = this;
+    var self                = this;
     var type = fileType(self.file.buffer);
     switch(true) {
       case TypeUtils.isImage(type.mime):
@@ -125,10 +125,10 @@ module.exports           = klass(function(options) {
   },
 
   identifyImage: function(next) {
-    var self             = this;
-    var image            = sharp(self.file.buffer);
+    var self                = this;
+    var image               = sharp(self.file.buffer);
     image.metadata().then(function(data) {
-      self.data          = data;
+      self.data             = data;
       if (next) {
         next(null, data);
       }
@@ -141,7 +141,7 @@ module.exports           = klass(function(options) {
       return this.prefix;
     } else {
       if (this.class_name == undefined) {
-        this.class_name  = changeCase.snakeCase(this.document.contructor.modelName);
+        this.class_name     = changeCase.snakeCase(this.document.contructor.modelName);
       }
       return '{{class_name}}/{{plural}}/{{document._id}}' 
     }
@@ -158,13 +158,13 @@ module.exports           = klass(function(options) {
 
   renderPrefix: function() {
     declare('renderPrefix');
-    var template         = Handlebars.compile(this.generatePrefix());
+    var template            = Handlebars.compile(this.generatePrefix());
     return template(this);
   },
 
   renderFileName: function(options) {
     declare('renderFileName', options);
-    var template         = Handlebars.compile(this.generateFileName());
+    var template            = Handlebars.compile(this.generateFileName());
     return template(options);
   },
 
@@ -189,8 +189,8 @@ module.exports           = klass(function(options) {
 
   processUpload: function(next) {
     declare('processUpload');
-    var self     = this;
-    var results  = [];
+    var self                = this;
+    var results             = [];
     this.identify(function() {
       _.each(self.styles, function(style) {
         self.processAndUpload(style, function(err, result) {
@@ -205,8 +205,8 @@ module.exports           = klass(function(options) {
 
   processDelete: function(next) {
     declare('processDelete');
-    var self             = this;
-    var results          = [];
+    var self                = this;
+    var results             = [];
     _.each(self.styles, function(style) {
       self.deleteStyle(style, function(err, result) {
 	results.push(result);
@@ -222,15 +222,15 @@ module.exports           = klass(function(options) {
   // this code, I was thinking of adding it to the middleware.
   processUrl: function(next) {
     declare('processUrl');
-    var self             = this;
-    var obj              = {};
-    obj.path             = '/tmp/' + randomstring.generate();
-    obj.original_name    = this.document[this.has_attached_file].original_url.split('/').pop();
+    var self               = this;
+    var obj                = {};
+    obj.path               = '/tmp/' + randomstring.generate();
+    obj.original_name      = this.document[this.has_attached_file].original_url.split('/').pop();
 
     this.downloadUrl(this.document.original_url, obj.path, function() {
       self.identify({input: obj.path}, function(err, identity) {
         fs.stat(obj.path, function(err, stats) {
-          obj.file_size = stats.size;
+          obj.file_size    = stats.size;
           obj.content_type = 'image/'+identity.format.toLowerCase();
           next(err, obj);
         })      
@@ -242,8 +242,8 @@ module.exports           = klass(function(options) {
   transform: function(options, next) {
     declare('transform', options);
     var self             = this;
-    var Process = processors.load(options.processor);
-    var processor = new Process(this);
+    var Process          = processors.load(options.processor);
+    var processor        = new Process(this);
     
     processor.process(options, function(err, buffer) {
       if (next) {
@@ -268,9 +268,9 @@ module.exports           = klass(function(options) {
   },
   
   getTransformOptions: function(style, next) {
-    var name             = _.first(_.keys(style));
-    var options          = style[name];
-    var renderOptions    = { style: name };
+    var name                  = _.first(_.keys(style));
+    var options               = style[name];
+    var renderOptions         = { style: name };
     if (options.extension) {
       renderOptions.extension = options.extension;
     } else {
@@ -301,7 +301,6 @@ module.exports           = klass(function(options) {
     declare('deleteStyle', style);
     var self             = this;
     self.getTransformOptions(style, function(err, name, options, renderOptions) {
-      // if (renderOptions.extension == undefined) renderOptions.extension = self.contentTypeToExt();
       self.fileSystem.delete(self.render(renderOptions), function(err, result) {
         next(result);
       });
@@ -309,4 +308,4 @@ module.exports           = klass(function(options) {
   }
 
 });
-
+ 

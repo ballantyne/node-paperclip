@@ -104,34 +104,9 @@ module.exports           = klass(function(options) {
     return crypto.createHmac('sha256', this.class_name).update(this.document._id).digest('hex'); 
   },
 
-  originalNameToExt: function() {
-    declare('originalNameToExt');
-    return TypeUtils.extFromFilename(this.document[this.has_attached_file].original_name);
-  },
-
   contentTypeToExt: function() {
     declare('contentTypeToExt');
     return TypeUtils.extFromMimeType(this.document[this.has_attached_file].content_type);
-  },
-
-  identifyDataToExtension: function() {
-    declare('identifyDataToExtension');
-    return TypeUtils.extFromIdentify(this.data.format);
-  }, 
-
-  detectExtension: function() {
-    declare('detectExtension');
-    if (this.file && this.file.extension) {
-      return this.file.extension;
-    } else if (this.data && this.data.format) {
-      return this.identifyDataToExtension();
-    } else if (this.document && this.document[this.has_attached_file] && 
-               this.document[this.has_attached_file].content_type) {
-      return this.contentTypeToExt();
-    } else if (this.document && this.document[this.has_attached_file] && 
-               this.document[this.has_attached_file].original_name) {
-      return this.originalNameToExt()
-    }
   },
 
   identify: function(next) {
@@ -159,7 +134,6 @@ module.exports           = klass(function(options) {
       }
     })
   },
-
 
   generatePrefix: function() {
     declare('generatePrefix');
@@ -196,10 +170,6 @@ module.exports           = klass(function(options) {
 
   render: function(options) {
     declare('render', options);
-    if (options.extension == undefined) {
-      options.extension  = this.detectExtension()
-      options.extension  = options.extension.toLowerCase();
-    }
     return this.renderPrefix() + "/" + this.renderFileName(options);
   },
 
@@ -285,8 +255,6 @@ module.exports           = klass(function(options) {
   processOriginal: function(key, next) {
     var self = this;
     if (self.file.path) {
-      // if the file is big and is streamed the request may finish before the file is finished streaming.
-      // I am not sure if that would be desired necessarily. 
       self.fileSystem.stream(self.file.path, key, function(err, result) {
         fs.unlink(self.file.path, function(err) {
           next();
@@ -302,9 +270,11 @@ module.exports           = klass(function(options) {
   getTransformOptions: function(style, next) {
     var name             = _.first(_.keys(style));
     var options          = style[name];
-    var renderOptions    = {style: name};
+    var renderOptions    = { style: name };
     if (options.extension) {
       renderOptions.extension = options.extension;
+    } else {
+      renderOptions.extension = this.contentTypeToExt();
     }
     next(null, name, options, renderOptions);
   },
@@ -314,7 +284,7 @@ module.exports           = klass(function(options) {
     var self             = this;
     self.getTransformOptions(style, function(err, name, options, renderOptions) {
       if (name == 'original') {
-        self.processOriginal(self.render(renderOptions), function() {
+       self.processOriginal(self.render(renderOptions), function() {
           next(null, options);
         });
       } else {
@@ -331,7 +301,7 @@ module.exports           = klass(function(options) {
     declare('deleteStyle', style);
     var self             = this;
     self.getTransformOptions(style, function(err, name, options, renderOptions) {
-      if (renderOptions.extension == undefined) renderOptions.extension = self.contentTypeToExt();
+      // if (renderOptions.extension == undefined) renderOptions.extension = self.contentTypeToExt();
       self.fileSystem.delete(self.render(renderOptions), function(err, result) {
         next(result);
       });

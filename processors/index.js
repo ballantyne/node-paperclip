@@ -25,7 +25,6 @@ module.exports.load = function(processor) {
       processors[processor] = func; 
     }
   }
-
   
   if (processors[processor] == undefined) {
     processors[processor] = require('node-paperclip-'+processor);

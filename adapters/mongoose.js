@@ -20,14 +20,14 @@ module.exports    = function paperclip (schema, opts) {
     schema.pre('save', function (next) {
       var self = this;
       if (this.uploads == undefined) this.uploads = {};
-      var upload           = _.clone(this[name]);
+      var upload                     = _.clone(this[name]);
       
       if (upload) {
-	this.uploads[name] = upload;
+	this.uploads[name]           = upload;
         this.uploads[name].fieldname = name;
-	var save           = this[name];
-        save.created_at    = new Date();
-	this[name]         = paperclip.toSave(save);
+	var save                     = this[name];
+        save.created_at              = new Date();
+	this[name]                   = paperclip.toSave(save);
 	next()
       } else {
 	next()
@@ -36,11 +36,11 @@ module.exports    = function paperclip (schema, opts) {
 
     schema.pre("update", function(next) {
       if (this.uploads == undefined) this.uploads = {};
-      var upload           = _.clone(this[name]);
+      var upload                     = _.clone(this[name]);
       if (upload) {
-	this.uploads[name] = upload;
+	this.uploads[name]           = upload;
         this.uploads[name].fieldname = name;
-        this[name]         = paperclip.toSave(this[name]);
+        this[name]                   = paperclip.toSave(this[name]);
 	next()
       } else {
 	next()

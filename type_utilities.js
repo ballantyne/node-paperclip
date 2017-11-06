@@ -1,6 +1,6 @@
 module.exports.extFromFilename = function(name) {
   var name             = this.document[this.has_attached_file].original_name
-    var ext              = name.split('.').pop();
+  var ext              = name.split('.').pop();
   return ext;
 }
 

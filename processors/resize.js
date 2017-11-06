@@ -5,63 +5,7 @@ const sharp    = require('sharp');
 module.exports = klass(function(paperclip) {
   this.paperclip = paperclip;
 }).methods({
-  stream: function(options, next) {
-    var self         = this.paperclip;
 
-    var geometry     = new Geometry({width: self.data.width, height: self.data.height})
-    var strategy     = geometry.strategy(options);
-    var image        = sharp();
-
-    switch(strategy.resize.modifier) {
-      case '!':
-        image = image.resize(strategy.resize.width, strategy.resize.height).ignoreAspectRatio();
-        break;
-      case '#':
-        image = image.resize(strategy.resize.width, strategy.resize.height).crop(sharp.strategy.attention);
-        break;
-      case '>':
-        image = image.resize(strategy.resize.width, strategy.resize.height).max();
-        break;
-      case '<':
-        image = image.resize(strategy.resize.width, strategy.resize.height).min();
-        break;
-      default:
-        image = image.resize(strategy.resize.width, strategy.resize.height);
-    }
-
-    if (strategy.extract) {
-      image   = image.extract(strategy.extract);
-    }
-
-    // if (options.extension != undefined && this.paperclip.file.extension != options.extension) {
-    //   switch(options.extension) {
-    //     case 'png':
-    //       image = image.png();
-    //       break;
-    //     case 'jpg':
-    //       image = image.jpeg();
-    //       break;
-    //     case 'tiff':
-    //       image = image.tiff();
-    //       break;
-    //     case 'webp':
-    //       image = image.webp();
-    //       break;
-    //     case 'raw':
-    //       image = image.raw();
-    //       break;
-    //     default:
-    //       image = image.toFormat({format: options.extension});
-    //   }   
-    // }
-
-
-    if (next) {
-      next(null, image);
-    } else {
-      return image;
-    }
-  },
 
   process: function(options, next) {
     var self         = this.paperclip;

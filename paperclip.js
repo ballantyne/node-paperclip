@@ -298,38 +298,43 @@ module.exports           = klass(function(options) {
       });
     }
   },
-
+  
+  getTransformOptions: function(style, next) {
+    var name             = _.first(_.keys(style));
+    var options          = style[name];
+    var renderOptions    = {style: name};
+    if (options.extension) {
+      renderOptions.extension = options.extension;
+    }
+    next(null, name, options, renderOptions);
+  },
 
   processAndUpload: function(style, next) {
     declare('processAndUpload', style);
     var self             = this;
-
-    var name             = _.first(_.keys(style));
-    var options          = style[name];
-    var renderOptions    = {style: name};
-    var key              = this.render(renderOptions);
-    
-    if (name == 'original') {
-      self.processOriginal(key, function() {
-        next(null, options);
-      });
-    } else {
-      self.transform(options, function(err, buffer) {
-	self.fileSystem.put(key, buffer, function(err, result) {
-	  next(null, options);
-	});
-      });
-    }
+    self.getTransformOptions(style, function(err, name, options, renderOptions) {
+      if (name == 'original') {
+        self.processOriginal(self.render(renderOptions), function() {
+          next(null, options);
+        });
+      } else {
+        self.transform(options, function(err, buffer) {
+          self.fileSystem.put(self.render(renderOptions), buffer, function(err, result) {
+            next(null, options);
+          });
+        });
+      }
+    })
   },
 
   deleteStyle: function(style, next) {
     declare('deleteStyle', style);
     var self             = this;
-    var name             = _.first(_.keys(style));
-    var key              = this.render({style: name, extension: this.contentTypeToExt() });
-
-    this.fileSystem.delete(key, function(err, result) {
-      next(result);
+    self.getTransformOptions(style, function(err, name, options, renderOptions) {
+      if (renderOptions.extension == undefined) renderOptions.extension = self.contentTypeToExt();
+      self.fileSystem.delete(self.render(renderOptions), function(err, result) {
+        next(result);
+      });
     });
   }
 

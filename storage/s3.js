@@ -1,7 +1,6 @@
 const config    = require('config');
 const AWS       = require('aws-sdk');
 const zlib      = require('zlib');
-const s3Stream  = require('s3-upload-stream')(new AWS.S3());
 const klass     = require('klass');
 const stream    = require('stream');
 const Readable  = stream.Readable;

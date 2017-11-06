@@ -1,6 +1,5 @@
 // code adapted from https://github.com/thoughtbot/paperclip
 //
-// helluva a regular expression I would have to say.
 // I'm planning on using objects rather than strings hopefully, so this
 // is more just for convienience in case people used to paperclip want to
 // use the original way of configuration.

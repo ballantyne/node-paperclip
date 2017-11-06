@@ -90,7 +90,7 @@ module.exports.delete = function(key, next) {
 
 module.exports.move = function(oldkey, key, next) {
   ensureDir(key, function(err) {
-    fs.rename('/'+oldkey, key, function(err) {
+    fs.rename(oldkey, key, function(err) {
       if (next) {
         next(err);
       }

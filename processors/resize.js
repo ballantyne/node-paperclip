@@ -33,10 +33,8 @@ module.exports = klass(function(paperclip) {
       image   = image.extract(strategy.extract);
     }
 
-    // image = image.toStream();
-
     if (next) {
-      next(err, image);
+      next(null, image);
     } else {
       return image;
     }

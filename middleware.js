@@ -1,14 +1,13 @@
+const express             = require('express');
+const router              = express.Router();
+const fs                  = require('fs');
+const multer              = require('multer')
+const Busboy              = require('busboy');
+const crypto              = require('crypto');
+const _                   = require('underscore');
+const storage             = require('./storage');
 
-const express            = require('express');
-const router             = express.Router();
-const fs                 = require('fs');
-const multer             = require('multer')
-const Busboy             = require('busboy');
-const crypto             = require('crypto');
-const _                  = require('underscore');
-const storage            = require('./storage');
-
-module.exports.assets    = function(options) {
+module.exports.assets     = function(options) {
   
   if (options == undefined) {
     options = {}
@@ -22,32 +21,30 @@ module.exports.assets    = function(options) {
   })
 
   return router;
-
 }
 
-module.exports.parse          = function(options) {
+module.exports.parse      = function(options) {
   if (options == undefined) options = {};
 
   if (options.storage) {
-    var fileSystem = storage[options.storage];
+    var fileSystem        = storage[options.storage];
   } else {
-    var fileSystem = storage.file;
+    var fileSystem        = storage.file;
   }
 
-  if (options.writeIf == undefined) {
-    options.writeIf = 5000000;
+  if (options.threshold == undefined) {
+    options.threshold     = 50000000;
   }
 
   return function(req, res, next) {
   
-    var files = {};
-
-    var busboy = new Busboy({ headers: req.headers });
+    var files             = {};
+    var busboy            = new Busboy({ headers: req.headers });
     
     busboy.on('file', function(fieldname, file, filename, encoding, mimetype) {
-      var largeFile = (req.headers['content-length']) > options.writeIf;
+      var largeFile       = (req.headers['content-length'] > options.threshold);
  
-      var new_file = {
+      var new_file        = {
         content_type: mimetype,
         original_name: filename,
         file_size: 0,
@@ -56,22 +53,22 @@ module.exports.parse          = function(options) {
       };
 
       if (largeFile) {      
-        new_file.path = fileSystem.generateKey(fieldname, filename);
+        new_file.path     = fileSystem.generateKey(fieldname, filename);
         fileSystem.stream(new_file.original_upload, file);
       }
-      new_file.buffer = [];
+
+      new_file.buffer     = [];
  
       file.on('data', function(data) {
         var buffer = new Buffer(data);
         new_file.file_size += data.length;
         new_file.buffer.push(buffer);
-
       });
 
    
       file.on('end', function() {
-        new_file.buffer = Buffer.concat(new_file.buffer);
-        files[fieldname] = new_file;
+        new_file.buffer   = Buffer.concat(new_file.buffer);
+        files[fieldname]  = new_file;
       });
     });
 

@@ -14,7 +14,7 @@ module.exports    = function paperclip (schema, opts) {
 
     // This is the best way that I could find to save only the information that I 
     // wanted saved in the database but be able to use all of the information available
-    // during the upload process without haven't to recreate the information during the
+    // during the upload process without having to recreate the information during the
     // processing.  comments and suggestions are welcome.  Also, if other people want to 
     // make middleware that works with other orms that would be great.
     schema.pre('save', function (next) {

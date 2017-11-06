@@ -123,7 +123,6 @@ module.exports           = klass(function(options) {
 
   contentTypeToExt: function() {
     declare('contentTypeToExt');
-    // console.log(this.document);
     switch(this.document[this.has_attached_file].content_type) {
       case 'image/jpeg':
         return 'jpg';
@@ -273,7 +272,7 @@ module.exports           = klass(function(options) {
     this.identify(function() {
       _.each(self.styles, function(style) {
         self.processAndUpload(style, function(err, result) {
-	  // results.push(result);
+	  results.push(result);
           if (_.keys(_.last(self.styles))[0] == _.keys(style)[0]) {
             next(err, results);
           }
@@ -376,11 +375,13 @@ module.exports           = klass(function(options) {
   processAndStream: function(key, options, next) {
     declare('processAndStream', options);
     var self             = this;
-    var upload = new stream.PassThrough();
- 
-    var processor = new processors.resize(this);
-    self.fileSystem.stream(self.file.stream.pipe(processor.stream(options)).pipe(upload), key, function(err, result) {
-      next(err, result);
+    var upload           = new stream.PassThrough();
+    var tmpWriteStream   = '/tmp/'+randomstring.generate(); 
+    var processor        = new processors.resize(this);
+    self.fileSystem.stream(self.file.stream.pipe(processor.stream(options)).pipe(upload.pipe(fs.createWriteStream(tmpWriteStream))), key, function(err, result) {
+      fs.unlink(tmpWriteStream, function(err) {
+        next(err, result);
+      })
     })
   },
 

@@ -42,8 +42,8 @@ module.exports.parse      = function(options) {
     var busboy            = new Busboy({ headers: req.headers });
     
     busboy.on('file', function(fieldname, file, filename, encoding, mimetype) {
-      var largeFile       = (req.headers['content-length'] > options.threshold);
- 
+      var largeFile = ((options.threshold != false && (req.headers['content-length'] > options.threshold)) ? true : false);
+
       var new_file        = {
         content_type: mimetype,
         original_name: filename,
@@ -51,7 +51,8 @@ module.exports.parse      = function(options) {
         extension: filename.split('.').pop()
       };
 
-      if (largeFile) {      
+      if (largeFile) {     
+        console.log('saving large file');
         new_file.path     = fileSystem.generateKey(fieldname, filename);
         fileSystem.stream(file, new_file.path);
       }

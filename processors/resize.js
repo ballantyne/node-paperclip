@@ -33,6 +33,29 @@ module.exports = klass(function(paperclip) {
       image   = image.extract(strategy.extract);
     }
 
+    // if (options.extension != undefined && this.paperclip.file.extension != options.extension) {
+    //   switch(options.extension) {
+    //     case 'png':
+    //       image = image.png();
+    //       break;
+    //     case 'jpg':
+    //       image = image.jpeg();
+    //       break;
+    //     case 'tiff':
+    //       image = image.tiff();
+    //       break;
+    //     case 'webp':
+    //       image = image.webp();
+    //       break;
+    //     case 'raw':
+    //       image = image.raw();
+    //       break;
+    //     default:
+    //       image = image.toFormat({format: options.extension});
+    //   }   
+    // }
+
+
     if (next) {
       next(null, image);
     } else {

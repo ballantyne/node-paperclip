@@ -28,10 +28,12 @@ const randomstring       = require('randomstring');
 const pluralize          = require('pluralize');
 const stream             = require('stream');
 const sharp              = require('sharp');
+const fileType           = require('file-type');
 
 const storage            = require('./storage');
 const processors         = require('./processors');
 const Geometry           = require('./geometry');
+const TypeUtils          = require('./type_utilities');
 const declare            = require('./logger')([]);
 
 module.exports           = klass(function(options) {
@@ -104,33 +106,17 @@ module.exports           = klass(function(options) {
 
   originalNameToExt: function() {
     declare('originalNameToExt');
-    var name             = this.document[this.has_attached_file].original_name
-    var ext              = name.split('.').pop();
-    return ext;
+    return TypeUtils.extFromFilename(this.document[this.has_attached_file].original_name);
   },
 
   contentTypeToExt: function() {
     declare('contentTypeToExt');
-    switch(this.document[this.has_attached_file].content_type) {
-      case 'image/jpeg':
-        return 'jpg';
-      case 'image/png':
-        return 'png';
-      case 'image/gif':
-        return 'gif';
-    }
+    return TypeUtils.extFromMimeType(this.document[this.has_attached_file].content_type);
   },
 
   identifyDataToExtension: function() {
     declare('identifyDataToExtension');
-    switch(this.data.format) {
-      case 'JPEG':
-	return 'jpg';
-      case 'PNG':
-	return 'png';
-      case 'GIF':
-	return 'gif';
-    }
+    return TypeUtils.extFromIdentify(this.data.format);
   }, 
 
   detectExtension: function() {
@@ -151,6 +137,20 @@ module.exports           = klass(function(options) {
   identify: function(next) {
     declare('identify');
     var self             = this;
+    var type = fileType(self.file.buffer);
+    switch(true) {
+      case TypeUtils.isImage(type.mime):
+        self.identifyImage(next);
+        break;
+      default:
+        self.data = type;
+        next(null, type);
+    }
+
+  },
+
+  identifyImage: function(next) {
+    var self             = this;
     var image            = sharp(self.file.buffer);
     image.metadata().then(function(data) {
       self.data          = data;
@@ -159,6 +159,7 @@ module.exports           = klass(function(options) {
       }
     })
   },
+
 
   generatePrefix: function() {
     declare('generatePrefix');
@@ -287,9 +288,9 @@ module.exports           = klass(function(options) {
       // if the file is big and is streamed the request may finish before the file is finished streaming.
       // I am not sure if that would be desired necessarily. 
       self.fileSystem.stream(self.file.path, key, function(err, result) {
-         fs.unlink(self.file.path, function(err) {
-           next();
-         });
+        fs.unlink(self.file.path, function(err) {
+          next();
+        });
       });
     } else {
       self.fileSystem.put(key, self.file.buffer, function(err, result) {
@@ -305,7 +306,8 @@ module.exports           = klass(function(options) {
 
     var name             = _.first(_.keys(style));
     var options          = style[name];
-    var key              = this.render({style: name});
+    var renderOptions    = {style: name};
+    var key              = this.render(renderOptions);
     
     if (name == 'original') {
       self.processOriginal(key, function() {

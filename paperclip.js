@@ -69,7 +69,7 @@ module.exports             = klass(function(options) {
     this.fileSystem         = storage.load(options.storage);
   } else {
     this.storage            = 's3';
-    this.fileSystem         = storage.s3;
+    this.fileSystem         = storage.load();
   }
 
 }).methods({

@@ -21,12 +21,14 @@ module.exports.load = function(processor) {
   if (typeof processor == 'function') {
     var func = processor;
     var processor = generateUniqueName(func);
-    processors[processor] = func; 
+    if (processors[processor] == undefined) {
+      processors[processor] = func; 
+    }
   }
 
   
   if (processors[processor] == undefined) {
-    processors[processor] = require(processor);
+    processors[processor] = require('node-paperclip-'+processor);
   }
   return processors[processor];
 }

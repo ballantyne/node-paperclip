@@ -284,7 +284,9 @@ module.exports           = klass(function(options) {
   processOriginal: function(key, next) {
     var self = this;
     if (self.file.path) {
-       self.fileSystem.stream(self.file.path, key, function(err, result) {
+      // if the file is big and is streamed the request may finish before the file is finished streaming.
+      // I am not sure if that would be desired necessarily. 
+      self.fileSystem.stream(self.file.path, key, function(err, result) {
          fs.unlink(self.file.path, function(err) {
            next();
          });

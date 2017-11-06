@@ -30,7 +30,6 @@ var ensureDir = function(key, next) {
 }
 
 module.exports.stream = function(stream, key, next) {
-  console.log(key, stream);
   if (typeof stream == 'string') stream = fs.createReadStream(stream);
   var writeStream = fs.createWriteStream(key); 
   writeStream.on('close', function() {

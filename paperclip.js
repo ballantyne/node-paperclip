@@ -32,7 +32,7 @@ const sharp              = require('sharp');
 const storage            = require('./storage');
 const processors         = require('./processors');
 const Geometry           = require('./geometry');
-const declare            = require('./logger')(['transform']);
+const declare            = require('./logger')([]);
 
 module.exports           = klass(function(options) {
   declare('initialize', options);

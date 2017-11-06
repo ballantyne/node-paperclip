@@ -24,6 +24,7 @@ module.exports    = function paperclip (schema, opts) {
       
       if (upload) {
 	this.uploads[name] = upload;
+        this.uploads[name].fieldname = name;
 	var save           = this[name];
         save.created_at    = new Date();
 	this[name]         = paperclip.toSave(save);
@@ -38,6 +39,7 @@ module.exports    = function paperclip (schema, opts) {
       var upload           = _.clone(this[name]);
       if (upload) {
 	this.uploads[name] = upload;
+        this.uploads[name].fieldname = name;
         this[name]         = paperclip.toSave(this[name]);
 	next()
       } else {

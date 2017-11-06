@@ -375,13 +375,15 @@ module.exports           = klass(function(options) {
   processAndStream: function(key, options, next) {
     declare('processAndStream', options);
     var self             = this;
+    
+    console.log(self);
+
     var upload           = new stream.PassThrough();
-    var tmpWriteStream   = '/tmp/'+randomstring.generate(); 
+    var tmpWriteStream      = '/tmp/'+randomstring.generate();
     var processor        = new processors.resize(this);
+
     self.fileSystem.stream(self.file.stream.pipe(processor.stream(options)).pipe(upload.pipe(fs.createWriteStream(tmpWriteStream))), key, function(err, result) {
-      fs.unlink(tmpWriteStream, function(err) {
-        next(err, result);
-      })
+      next(err, result);
     })
   },
 

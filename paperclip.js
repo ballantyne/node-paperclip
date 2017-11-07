@@ -289,9 +289,13 @@ module.exports             = klass(function(options) {
         });
       } else {
         self.transform(options, function(err, buffer) {
-          self.fileSystem.put(self.render(renderOptions), buffer, function(err, result) {
+          if (options.store != undefined && options.store == false) {
             next(null, options);
-          });
+          } else {
+            self.fileSystem.put(self.render(renderOptions), buffer, function(err, result) {
+              next(null, options);
+            });
+          }
         });
       }
     })

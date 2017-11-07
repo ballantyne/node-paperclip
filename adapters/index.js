@@ -11,6 +11,5 @@
 
 var loader      = require('../loader');
 var databases = { mongoose: require('./mongoose') };
-
 module.exports.load = loader('mongoose', databases);
 module.exports.mongoose = databases.mongoose;

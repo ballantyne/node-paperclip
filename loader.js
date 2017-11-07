@@ -28,6 +28,14 @@ module.exports = function(_default, container) {
       }
     }
 
+    if (typeof _module == 'object') {
+      var obj = JSON.stringify(_module);
+      var _module = generateUniqueName(obj);
+      if (container[_module] == undefined) {
+        container[_module] = obj; 
+      }
+    }
+
     if (container[_module] == undefined) {
       container[_module] = require('node-paperclip-'+_module);
     }

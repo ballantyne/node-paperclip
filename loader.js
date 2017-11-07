@@ -1,6 +1,6 @@
 var crypto     = require('crypto');
 var container = {};
-
+var _ = require('underscore');
 
 var generateUniqueName = function(func) {
   var string = func;
@@ -12,6 +12,16 @@ var generateUniqueName = function(func) {
     .digest('hex');
 }
 
+var hashObjectOfFunctions = function(_module) {
+  var hash_obj = {};
+  var keys = _.keys(_module);
+  for (i = 0; i < keys.length; i++) { 
+    key = keys[i];
+    hash_obj[key] = _module[key].toString();
+  }
+  var obj = JSON.stringify(hash_obj);
+  return generateUniqueName(obj);
+}
 
 module.exports = function(_default, container) { 
   if (container == undefined) container = {};
@@ -29,8 +39,8 @@ module.exports = function(_default, container) {
     }
 
     if (typeof _module == 'object') {
-      var obj = JSON.stringify(_module);
-      var _module = generateUniqueName(obj);
+      var obj = _module;
+      _module = hashObjectOfFunctions(_module);
       if (container[_module] == undefined) {
         container[_module] = obj; 
       }

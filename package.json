@@ -1,6 +1,6 @@
 {
   "name": "node-paperclip",
-  "version": "1.2.1",
+  "version": "1.2.2",
   "description": "paperclip like plugin that currently only is working with mongoose, but possibly other databases in the future.  The name is a reference to this library https://github.com/thoughtbot/paperclip which it tries to emulate but is currently not as complete in functionality or testing.",
   "main": "index.js",
   "scripts": {

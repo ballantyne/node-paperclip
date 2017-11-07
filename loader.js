@@ -5,7 +5,7 @@ var container = {};
 var generateUniqueName = function(func) {
   var string = func;
   if (typeof string == 'function') {
-    string = string.toString;
+    string = string.toString();
   }
   return crypto.createHmac('sha256', 'function')
     .update(string)

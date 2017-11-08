@@ -8,8 +8,16 @@
 // might need to be a thoughtful consideration of how to make all that people 
 // would expect to work to work.
 
+var path                = require('path');
+var loader              = require(path.join(__dirname, 'loader'));
+var load                = loader();
+module.exports.load     = load;
+var mongoose;
 
-var loader      = require('../loader');
-var databases = { mongoose: require('./mongoose') };
-module.exports.load = loader('mongoose', databases);
-module.exports.mongoose = databases.mongoose;
+// This isn't really necessary, after releasing the new verison, I plan to make the database specific 
+// module be the way that you install the main module.
+try {
+  mongoose = require('node-paperclip-mongoose')
+} catch (err) {}
+
+module.exports.mongoose = mongoose;

@@ -1,13 +1,19 @@
 node-paperclip
 =========
 
+Slight changes have been made in this version.  The configuration has changed and also the form that you would use to upload a document has also changed.
+
 This is a npm module that is meant to work like the Paperclip gem from Ruby on Rails. It currently only works with mongoose, but is set up to be easily extended to work with other databases.  Also, it works with AWS s3 and the file system at the present time, but it should be easy to add other storage methods in the future. 
 
 To install 
 
 ```bash
 npm install node-paperclip --save
+npm install node-paperclip-mongoose --save
 ```
+
+Currently I have only one database adapter, so if you want to use this module with mongoose you should also install the mongoose adapter or take a look at the mongoose adapter and make your own version for whatever database software you are using. In the future I think you will only need to install the adapters module and it will install node-paperclip as a dependency, but I am still experimenting with how all that works on install. The example below will work if you install node-paperclip 1.2.4 from this repo.  After releasing this version it should work without installing it separately.
+
 
 Here is an example of a model that uses the mongoose plugin.
 
@@ -21,20 +27,20 @@ const ProfileImage = new Schema({
   username: String
 });
 
-ProfileImage.plugin(Paperclip.plugins.mongoose, {files: [
-  { 
-    has_attached_file: 'profile_image',
-    styles: [
-      { original: true },
-      { tiny:     { width: 50,  height: 50,  modifier: '#' } },
-      { thumb:    { width: 100, height: 100, modifier: '#' } },
-      { profile:  { width: 200, height: 200, modifier: '#' } }
-    ],
-    prefix:      '{{plural}}/{{document.username}}',
-    name_format: '{{style}}.{{extension}}',
-    storage: 'file'
+ProfileImage.plugin(Paperclip.plugins.load('mongoose'), {
+  profile_image: {
+    avatar: { 
+      styles: [
+        { original: true },
+        { tiny:     { width: 50,  height: 50,  modifier: '#' } },
+        { thumb:    { width: 100, height: 100, modifier: '#' } },
+        { profile:  { width: 200, height: 200, modifier: '#' } }
+      ],
+      prefix:      '{{plural}}/{{document.username}}',
+      name_format: '{{style}}.{{extension}}'
+    }
   }
-]})
+})
 
 module.exports     = mongoose.model('ProfileImage', ProfileImage);
 ```
@@ -47,39 +53,47 @@ var router = express.Router();
 var ProfileImage = require('profile_image');
 var middleware = require('node-paperclip').middleware
 
-router.post('/post_profile_image', 
+router.post('/post_profile_image',
 
-  middleware.parse(), 
+    middleware.parse({verbose_methods: true}),
 
   function(req, res, next) {
-    req.body.user_id  = req.user._id;
-    req.body.username = req.user.username;
+    req.body.profile_image.user_id  = req.user._id;
+    req.body.profile_image.username = req.user.username;
     next();
-  },  
+  },
 
   function(req, res, next) {
+
+    console.log(req.body);
+
+
     ProfileImage.findOne({username: req.user.username}, function(err, profile_image) {
-      if (profile_image) {  
-        profile_image.remove(function(err) {
+      if (req.body.profile_image) {
+        if (profile_image) {
+          profile_image.remove(function(err) {
+            next();
+          });
+        } else {
           next();
-        });
+        }
       } else {
-        next();
+        res.redirect('/#profile/images');
       }
     });
-  }, 
+  },
 
-  function (req, res) {  
-    
-    ProfileImage.create(req.body, function(err, doc) {
+  function (req, res) {
+    ProfileImage.create(req.body.profile_image, function(err, doc) {
       res.redirect('/#profile/images');
     });
 })
 
+
 module.exports = router;
 ```
 
-And then use the same name as you put in the has_attached_file field for the fieldname and it the middleware should correctly prepare the data to be saved and place the file in the correct place in your storage.
+And then use the same name as you put in the as the key in the plugin and the name of the attachment that you configured (profile_image[avatar] using the example above)  and the middleware should correctly prepare the data to be saved and place the file in the correct place in your storage.
 
 ```html
 <form  class="form-horizontal" enctype="multipart/form-data" action="/post_profile_image" method="post">
@@ -89,7 +103,7 @@ And then use the same name as you put in the has_attached_file field for the fie
 <div  class="form-group">
   <div>  
     <label>Profile Image:</label>
-    <input type="file" name="profile_image" id="profile_image">
+    <input type="file" name="profile_image[avatar]" id="profile_image">
   </div>
 </div>
 
@@ -105,15 +119,15 @@ And then use the same name as you put in the has_attached_file field for the fie
 
 
 
-This module uses s3 by default, but can use a file system if you want.  The example above is configured to use the file system.  If you plan to use s3 you will need the following environment variables set the AWS_BUCKET, AWS_REGION, AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY.
+This module now uses the file system by default, but can use s3 or whatever cloud api you want, just right a module like the node-paperclip-s3 module.  If you share your code that would be great, but you can just pass an object or function that has the correct api and the paperclip module will use what is in the configuration.  I'll make a few examples to show how that should work soon.  The example above is configured to use the file system.  
+
+If you plan to use s3 you will need the following environment variables set the AWS_BUCKET, AWS_REGION, AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY.
 
 
 Contributing
 ------------
 
-If you'd like to contribute a feature or bugfix: Thanks! To make sure your
-fix/feature has a high chance of being included, please read the following
-guidelines:
+If you'd like to contribute a feature or bugfix: Thanks! To make sure your fix/feature has a high chance of being included, please read the following guidelines:
 
 1. Post a [pull request](https://github.com/ballantyne/node-paperclip/compare/).
 2. Make sure there are tests! We will not accept any patch that is not tested.

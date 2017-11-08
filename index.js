@@ -1,11 +1,8 @@
-// This isn't a personal dig at anyone.  It is a remake of a library
-// that is well known in the rails community.
+const path                         = require('path');
 
-module.exports.storage             = require('./storage');
-module.exports.parser              = require('./parser');
-module.exports.paperclip           = require('./paperclip');
-module.exports.middleware          = require('./middleware');
-module.exports.geometry            = require('./geometry');
-module.exports.geometry_detector   = require('./geometry_detector');
-module.exports.plugins             = require('./adapters');
-
+module.exports.storage             = require(path.join(__dirname, 'storage'));
+module.exports.paperclip           = require(path.join(__dirname, 'paperclip'));
+module.exports.middleware          = require(path.join(__dirname, 'middleware'));
+module.exports.plugins             = require(path.join(__dirname, 'adapters'));
+module.exports.logger              = require(path.join(__dirname, 'logger'));
+module.exports.class               = require(path.join(__dirname, 'class'));

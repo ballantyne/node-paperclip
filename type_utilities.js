@@ -6,6 +6,14 @@ module.exports.extFromFilename = function(name) {
 
 module.exports.extFromMimeType = function(mime) {
   switch(mime) {
+    case 'audio/wav':
+      return 'wav';
+    case 'audio/x-wav':
+      return 'wav';
+    case 'audio/mpeg':
+      return 'mp3';
+    case 'audio/mp3':
+      return 'mp3';
     case 'image/jpeg':
       return 'jpg';
     case 'image/png':

@@ -5,11 +5,14 @@ Slight changes have been made in this version.  The configuration has changed an
 
 This is a npm module that is meant to work like the Paperclip gem from Ruby on Rails. It currently only works with mongoose, but is set up to be easily extended to work with other databases.  Also, it works with AWS s3 and the file system at the present time, but it should be easy to add other storage methods in the future. 
 
-To install 
+To install (Shouldn't it be possible for one of the module to include the others as dependencies?)
 
 ```bash
 npm install node-paperclip --save
 npm install node-paperclip-mongoose --save
+npm install node-paperclip-s3 --save
+npm install node-paperclip-file --save
+
 ```
 
 Currently I have only one database adapter, so if you want to use this module with mongoose you should also install the mongoose adapter or take a look at the mongoose adapter and make your own version for whatever database software you are using. In the future I think you will only need to install the adapters module and it will install node-paperclip as a dependency, but I am still experimenting with how all that works on install. The example below will work if you install node-paperclip 1.2.4 from this repo.  After releasing this version it should work without installing it separately.

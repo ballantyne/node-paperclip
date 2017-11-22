@@ -1,6 +1,6 @@
 const path         = require('path');
 const klass        = require('klass');
-const mongoose     = require('mongoose');
+const mongoose     = require('mongoose-memories');
 const Schema       = mongoose.Schema;
 const Paperclip    = require(path.join(__dirname, '../..', 'index'));
 
@@ -9,7 +9,7 @@ const ProfileImage = new Schema({
   username: String
 });
 
-ProfileImage.plugin(Paperclip.plugins.mongoose, {
+ProfileImage.plugin(Paperclip.plugins.load('mongoose'), {
   profile_image: {
     avatar: {
       styles: [

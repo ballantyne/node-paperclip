@@ -14,8 +14,6 @@ var load                = loader();
 module.exports.load     = load;
 var mongoose;
 
-// This isn't really necessary, after releasing the new verison, I plan to make the database specific 
-// module be the way that you install the main module.
 try {
   mongoose = require('node-paperclip-mongoose')
 } catch (err) {}

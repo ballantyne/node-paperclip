@@ -10,8 +10,8 @@ To install (Shouldn't it be possible for one of the module to include the others
 ```bash
 npm install node-paperclip --save
 npm install node-paperclip-mongoose --save
-npm install node-paperclip-s3 --save
 npm install node-paperclip-file --save
+npm install node-paperclip-s3 --save # optional 
 
 ```
 

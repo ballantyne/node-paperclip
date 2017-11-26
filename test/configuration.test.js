@@ -3,7 +3,6 @@ var expect    = require("chai").expect;
 var main      = require(path.join(__dirname, '..', 'index'));
 var Paperclip = main.paperclip;
 
-
 var ProfileImage = require(path.join(__dirname, 'config', 'profile_image'));
 
 

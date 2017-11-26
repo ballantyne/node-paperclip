@@ -9,9 +9,7 @@ To install (Shouldn't it be possible for one of the module to include the others
 
 ```bash
 npm install node-paperclip --save
-npm install node-paperclip-mongoose --save
 npm install node-paperclip-file --save
-npm install node-paperclip-s3 --save # optional 
 
 ```
 
@@ -30,7 +28,7 @@ const ProfileImage = new Schema({
   username: String
 });
 
-ProfileImage.plugin(Paperclip.plugins.load('mongoose'), {
+ProfileImage.plugin(Paperclip.plugins.mongoose, {
   profile_image: {
     avatar: { 
       styles: [
@@ -58,7 +56,7 @@ var middleware = require('node-paperclip').middleware
 
 router.post('/post_profile_image',
 
-    middleware.parse({verbose_methods: true}),
+    middleware.parse(),
 
   function(req, res, next) {
     req.body.profile_image.user_id  = req.user._id;
@@ -123,6 +121,11 @@ And then use the same name as you put in the as the key in the plugin and the na
 
 
 This module now uses the file system by default, but can use s3 or whatever cloud api you want, just right a module like the node-paperclip-s3 module.  If you share your code that would be great, but you can just pass an object or function that has the correct api and the paperclip module will use what is in the configuration.  I'll make a few examples to show how that should work soon.  The example above is configured to use the file system.  
+
+To install the s3 module run this command in your project directory.
+```bash
+npm install node-paperclip-s3 --save
+```
 
 If you plan to use s3 you will need the following environment variables set the AWS_BUCKET, AWS_REGION, AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY.
 

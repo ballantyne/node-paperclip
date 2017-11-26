@@ -1,6 +1,6 @@
 {
   "name": "node-paperclip",
-  "version": "1.2.6",
+  "version": "1.2.7",
   "description": "paperclip like plugin that currently only is working with mongoose, but possibly other databases in the future.  The name is a reference to this library https://github.com/thoughtbot/paperclip which it tries to emulate but is currently not as complete in functionality or testing.",
   "main": "index.js",
   "scripts": {
@@ -21,19 +21,21 @@
     "klass": "^1.4.1",
     "node-paperclip-convert-image": "^1.0.0",
     "node-paperclip-file": "^1.0.1",
+    "node-paperclip-mongoose": "^1.0.1",
     "node-paperclip-resize-image": "^1.0.0",
     "pluralize": "^7.0.0",
     "randomstring": "^1.1.5",
     "request": "^2.81.0",
-    "underscore": "^1.8.3"
+    "underscore": "^1.8.3",
+    "valid-url": "^1.0.9"
   },
   "devDependencies": {
     "body-parser": "^1.18.2",
     "chai": "^4.1.2",
     "express": "^4.15.5",
     "mocha": "^3.5.3",
-    "mongoose": "^4.13.3",
-    "node-paperclip-mock-file-system": "^1.0.0",
+    "mongoose-memories": "^1.0.6",
+    "node-paperclip-mock-file-system": "^1.0.5",
     "supertest": "^3.0.0"
   }
 }

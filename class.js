@@ -181,6 +181,7 @@ module.exports                = klass(function(class_name, name, paperclip) {
 
   transform: function(opts, next) {
     var self                  = this;
+    
     var count                 = 0;
     var buffer                = Buffer.from(self.file().file.buffer);
     var pendingTasks          = self.configureTransformTasks(opts);

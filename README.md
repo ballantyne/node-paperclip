@@ -13,9 +13,6 @@ npm install node-paperclip-file --save
 
 ```
 
-Currently I have only one database adapter, so if you want to use this module with mongoose you should also install the mongoose adapter or take a look at the mongoose adapter and make your own version for whatever database software you are using. In the future I think you will only need to install the adapters module and it will install node-paperclip as a dependency, but I am still experimenting with how all that works on install. The example below will work if you install node-paperclip 1.2.4 from this repo.  After releasing this version it should work without installing it separately.
-
-
 Here is an example of a model that uses the mongoose plugin.
 
 ```javascript

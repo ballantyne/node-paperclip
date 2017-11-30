@@ -21,4 +21,5 @@ Photo.plugin(Paperclip.plugins.mongoose, {
   }
 })
 
+
 module.exports = mongoose.model('Photo', Photo);

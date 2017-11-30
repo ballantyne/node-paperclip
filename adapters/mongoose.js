@@ -13,6 +13,16 @@ module.exports    = function paperclip (schema, opts) {
     var paperclip            = new Paperclip(configuration);
     var keys                 = _.keys(files);
 
+    schema.methods.thumbnail = function(file, style) {
+      paperclip.document = this;
+      var c = paperclip.class(class_name, file);
+      return c.fileSystem.host() + c.thumbnail(style);
+    };
+
+    schema.methods.paperclip = function() {
+      return paperclip
+    };
+
     for (i = 0; i < keys.length; i++) {
 
       var name               = keys[i];
@@ -22,7 +32,8 @@ module.exports    = function paperclip (schema, opts) {
       obj[name]              = {};
 
       schema.add(obj);     
-     
+    
+
       schema.pre('save', function preSave(next) {
         var self = this;
         if (this.uploads == undefined) this.uploads = new Upload();

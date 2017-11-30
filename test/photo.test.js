@@ -2,7 +2,6 @@ var path         = require('path');
 var expect       = require("chai").expect;
 var main         = require(path.join(__dirname, '..', 'index'));
 var Paperclip    = main.paperclip;
-var mongoose     = require('mongoose-memories');
 var _            = require('underscore');
 const tools      = require(path.join(__dirname, '..', 'tools'));
 
@@ -28,7 +27,6 @@ _.each(photoKeys, function(p) {
         var response = {photo: {}}
         var photo = photos[p];
         tools.fromFile(photo.url, function(err, file) {
-          // console.log("downloading", photo.url);
           response.photo.file = file;
           var sizes = { 
             original: { width: photo.width, height: photo.height } ,
@@ -42,8 +40,6 @@ _.each(photoKeys, function(p) {
             _.each(styles, function(style) {
               var key = 'photo/files/' + doc._id + "/" + style + ".jpg";
               tools.identify(global.mock_file_system[key], function(err, metadata) {
-                // console.log(photo);
-                // console.log({width: metadata.width, height: metadata.height});
                 expect(metadata.width).to.equal(sizes[style].width);
                 expect(metadata.height).to.equal(sizes[style].height);
                 if(_.last(styles) == style) {

@@ -2,10 +2,9 @@ var path         = require('path');
 var expect       = require("chai").expect;
 var main         = require(path.join(__dirname, '..', 'index'));
 var Paperclip    = main.paperclip;
-var mongoose     = require('mongoose-memories');
 var _            = require('underscore');
 const tools      = require(path.join(__dirname, '..', 'tools'));
-
+const fileType   = require('file-type');
 // var photos       = require(path.join(__dirname, 'data', 'flickr'));
 
 var ProfileImage = require(path.join(__dirname, 'models', 'profile_image'));
@@ -23,6 +22,7 @@ describe("Node Paperclip", function() {
       var response = {profile_image: {}}
       
       response.profile_image.avatar = tools.fromFile();
+
       response.profile_image.username = 'scott';
 
       var sizes = { 
@@ -33,20 +33,22 @@ describe("Node Paperclip", function() {
       }
  
       ProfileImage.create(response.profile_image, function(err, doc) {
+        var files = global.mock_file_system; 
+        var analyzed = [];
         styles = ['original', 'tiny', 'thumb', 'profile'];
         _.each(styles, function(style) {
-          var key = 'profile_image/avatars/'+response.profile_image.username+"/"+style+".jpg"
-          tools.identify(global.mock_file_system[key], function(err, metadata) {
-        
+          tools.identify(files[doc.thumbnail('avatar', style)], function(err, metadata) {
+            analyzed.push(metadata);
             expect(metadata.width).to.equal(sizes[style].width);
             expect(metadata.height).to.equal(sizes[style].height);
-            
+            expect(doc.thumbnail('avatar', style)).to.equal('profile_image/avatars/scott/'+style+'.jpg')           
+       
             if (_.last(styles) == style) {
 	      done();
             }
 
           });
-        })
+        });
       });
     });
   });

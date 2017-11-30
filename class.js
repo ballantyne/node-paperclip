@@ -29,6 +29,7 @@ module.exports                = klass(function(class_name, name, paperclip) {
 
 }).methods({
   attributes: function() {
+
     if (this.file().parameterize_field != undefined) {
       var parameterize = changeCase.paramCase(this.class().document[this.parameterize_field])
     }
@@ -40,6 +41,7 @@ module.exports                = klass(function(class_name, name, paperclip) {
     if (this.file().hash_field) {
       attrs.hash_digest = this.generateHash(this.file().hash_field); 
     }
+
 
     return attrs;
 
@@ -124,6 +126,14 @@ module.exports                = klass(function(class_name, name, paperclip) {
     return key;
   },
 
+  thumbnail: function(style) {
+    var renderOptions         = this.attributes();
+    renderOptions.style       = style;
+    renderOptions.extension   = this.contentTypeToExt();
+    return this.render(renderOptions);
+  },
+
+
   // currently not used.  was planning on using this function to download files from
   // s3 to reprocess them if the sizes change, but I haven't rewritten that code yet.
   download: function(key, path, next) {
@@ -181,7 +191,7 @@ module.exports                = klass(function(class_name, name, paperclip) {
 
   transform: function(opts, next) {
     var self                  = this;
-    
+
     var count                 = 0;
     var buffer                = Buffer.from(self.file().file.buffer);
     var pendingTasks          = self.configureTransformTasks(opts);
@@ -257,7 +267,6 @@ module.exports                = klass(function(class_name, name, paperclip) {
   saveOriginal: function(key, next) {
     var self = this;
 
-    var self                  = this;
     if (self.file().file.path) {
       self.fileSystem.stream(self.file().file.path, key, function(err, result) {
         fs.unlink(self.file().file.path, function(err) {
@@ -265,7 +274,7 @@ module.exports                = klass(function(class_name, name, paperclip) {
         });
       });
     } else {
-      self.fileSystem.put(key, self.file().file.buffer, function(err, result) {
+      self.fileSystem.put(key, Buffer.from(self.file().file.buffer), function(err, result) {
         next();
       });
     }
@@ -278,28 +287,6 @@ module.exports                = klass(function(class_name, name, paperclip) {
     renderOptions.style       = stylename;
     renderOptions.extension   = this.contentTypeToExt();
     next(null, stylename, options, renderOptions);
-  },
-
-  assembleLocations: function(next) {
-    var self = this;
-    var results               = {};
-    _.each(self.file().styles, function(style) {
-      self.assembleLocation(style, function(err, result) {
-	_.extend(results, result);
-	if (_.first(_.keys(_.last(self.styles))) == _.first(_.keys(style))) {
-	  next(err, results);
-	}
-      })
-    });  
-  },
-  
-  assembleLocation: function(style, next) {
-    var self = this;
-    self.getTransformOptions(style, function(err, stylename, options, renderOptions) {
-      var obj               = {};
-      obj[stylename]        = self.render(renderOptions);
-      next(err, obj);
-    })
   },
 
   transformAndUpload: function(style, next) {

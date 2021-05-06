@@ -18,7 +18,7 @@
     "change-case": "^3.0.1",
     "express": "^4.16.4",
     "file-type": "^7.2.0",
-    "handlebars": "^4.0.11",
+    "handlebars": "^4.7.7",
     "klass": "^1.4.1",
     "node-paperclip-convert-image": "^1.0.0",
     "node-paperclip-file": "^1.0.1",

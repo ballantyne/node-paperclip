@@ -27,7 +27,7 @@
     "pluralize": "^7.0.0",
     "randomstring": "^1.1.5",
     "request": "^2.81.0",
-    "underscore": "^1.8.3",
+    "underscore": "^1.12.1",
     "valid-url": "^1.0.9"
   },
   "devDependencies": {
